@@ -5,14 +5,15 @@
 ---
 
 ## ✨ Fonctionnalités
-*   **Interface Graphique Améliorée (Nouveau)** : Design structuré, facile à lire, avec sécurité anti-erreur.
-*   **Glisser-Déposer (Drag & Drop) (Nouveau)** : Glissez directement vos musiques et images dans l'application pour gagner du temps !
-*   **Mémoire des Préférences (Nouveau)** : L'application se souvient de vos derniers réglages à chaque réouverture.
+*   **Interface Moderne (Dark Mode) (Nouveau)** : Design sombre et élégant pour une meilleure lisibilité.
+*   **Glisser-Déposer (Drag & Drop)** : Glissez directement vos musiques et images dans l'application.
+*   **Extraction de Métadonnées (ID3) (Nouveau)** : AutoStepper lit automatiquement le titre, l'artiste et le genre de vos fichiers audio !
+*   **Pack de Chanson Complet (Nouveau)** : Crée automatiquement un dossier prêt pour StepMania contenant le fichier `.sm`, la musique et les images.
+*   **Mémoire des Préférences** : L'application se souvient de vos derniers réglages.
 *   **Génération complète** : Crée tous les niveaux de difficulté (Beginner à Challenge).
 *   **Analyse avancée** : Support des notes maintenues (holds), des sauts (jumps) et des mines.
 *   **Artwork Automatique** : Recherche automatique de bannières et fonds sur Google Images.
-*   **Images Personnalisées** : Possibilité d'uploader votre propre **Bannière** et votre propre **Arrière-plan** séparément.
-*   **Métadonnées Avancées** : Ajoutez manuellement le Titre Translit, l'Artiste Translit, le Genre, etc., via le bouton d'Options Avancées.
+*   **Images Personnalisées** : Possibilité d'utiliser votre propre bannière et arrière-plan.
 *   **Multi-fichiers** : Traitez une chanson seule ou tout un dossier d'un coup.
 
 ---
