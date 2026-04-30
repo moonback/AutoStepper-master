@@ -69,6 +69,10 @@ public class AutoStepper {
     }
 
     public static void main(String[] args) {
+        if (args.length == 0) {
+            AutoStepperGUI.launch();
+            return;
+        }
         minim = new Minim(myAS);
         String outputDir, input;
         float duration;
