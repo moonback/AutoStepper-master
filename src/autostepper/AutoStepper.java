@@ -23,6 +23,10 @@ public class AutoStepper {
     public static boolean USETAPPER = false, HARDMODE = false, UPDATESM = false;
     public static String customImagePath = null;
     public static String customBackgroundPath = null;
+    public static String titleTranslit = "";
+    public static String subTitleTranslit = "";
+    public static String artistTranslit = "";
+    public static String genre = "";
 
     public static Minim minim;
     public static AutoStepper myAS = new AutoStepper();

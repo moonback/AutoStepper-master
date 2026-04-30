@@ -18,10 +18,10 @@ public class SMGenerator {
     private static String Header = "#TITLE:$TITLE;\n" +
             "#SUBTITLE:;\n" +
             "#ARTIST:AutoStepper par Maysson.D;\n" +
-            "#TITLETRANSLIT:;\n" +
-            "#SUBTITLETRANSLIT:;\n" +
-            "#ARTISTTRANSLIT:;\n" +
-            "#GENRE:;\n" +
+            "#TITLETRANSLIT:$TITLETRANSLIT;\n" +
+            "#SUBTITLETRANSLIT:$SUBTITLETRANSLIT;\n" +
+            "#ARTISTTRANSLIT:$ARTISTTRANSLIT;\n" +
+            "#GENRE:$GENRE;\n" +
             "#CREDIT:AutoStepper par Maysson.D;\n" +
             "#BANNER:$BANNERIMAGE;\n" +
             "#BACKGROUND:$BACKIMAGE;\n" +
@@ -158,6 +158,10 @@ public class SMGenerator {
             BufferedWriter writer = new BufferedWriter(new FileWriter(smfile));
             writer.write(
                     Header.replace("$TITLE", shortName)
+                            .replace("$TITLETRANSLIT", AutoStepper.titleTranslit != null ? AutoStepper.titleTranslit : "")
+                            .replace("$SUBTITLETRANSLIT", AutoStepper.subTitleTranslit != null ? AutoStepper.subTitleTranslit : "")
+                            .replace("$ARTISTTRANSLIT", AutoStepper.artistTranslit != null ? AutoStepper.artistTranslit : "")
+                            .replace("$GENRE", AutoStepper.genre != null ? AutoStepper.genre : "")
                             .replace("$BANNERIMAGE", bannerFileName)
                             .replace("$BACKIMAGE", bgFileName)
                             .replace("$MUSICFILE", filename)

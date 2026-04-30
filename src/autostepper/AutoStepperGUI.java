@@ -26,89 +26,109 @@ public class AutoStepperGUI extends JFrame {
         setLocationRelativeTo(null);
 
         // Panel principal avec marges
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
         mainPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
         setContentPane(mainPanel);
 
-        // Panel de configuration (Haut)
-        JPanel configPanel = new JPanel(new GridBagLayout());
+        // Titre de l'application
+        JLabel lblTitle = new JLabel("AutoStepper - Générateur StepMania", SwingConstants.CENTER);
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
+        lblTitle.setForeground(new Color(50, 50, 50));
+        mainPanel.add(lblTitle, BorderLayout.NORTH);
+
+        // Panel de configuration central
+        JPanel configPanel = new JPanel();
+        configPanel.setLayout(new BoxLayout(configPanel, BoxLayout.Y_AXIS));
+        
+        // --- SECTION 1 : Fichiers et Dossiers ---
+        JPanel filesPanel = new JPanel(new GridBagLayout());
+        filesPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "📁 Fichiers et Dossiers"));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 5);
-
-        // --- Ligne 1 : Entrée ---
-        gbc.gridx = 0; gbc.gridy = 0;
-        configPanel.add(new JLabel("Musique / Dossier :"), gbc);
-
+        gbc.insets = new Insets(8, 10, 8, 10);
+        
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
+        filesPanel.add(new JLabel("Musique / Dossier :"), gbc);
         txtInput = new JTextField(".");
         gbc.gridx = 1; gbc.weightx = 1.0;
-        configPanel.add(txtInput, gbc);
-
+        filesPanel.add(txtInput, gbc);
         JButton btnBrowseInput = new JButton("Parcourir...");
         gbc.gridx = 2; gbc.weightx = 0;
-        configPanel.add(btnBrowseInput, gbc);
+        filesPanel.add(btnBrowseInput, gbc);
 
-        // --- Ligne 2 : Sortie ---
-        gbc.gridx = 0; gbc.gridy = 1;
-        configPanel.add(new JLabel("Dossier de sortie :"), gbc);
-
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
+        filesPanel.add(new JLabel("Dossier de sortie :"), gbc);
         txtOutput = new JTextField(".");
         gbc.gridx = 1; gbc.weightx = 1.0;
-        configPanel.add(txtOutput, gbc);
-
+        filesPanel.add(txtOutput, gbc);
         JButton btnBrowseOutput = new JButton("Parcourir...");
         gbc.gridx = 2; gbc.weightx = 0;
-        configPanel.add(btnBrowseOutput, gbc);
+        filesPanel.add(btnBrowseOutput, gbc);
+        
+        configPanel.add(filesPanel);
+        configPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // --- Ligne 3 : Image personnalisée (Bannière) ---
-        gbc.gridx = 0; gbc.gridy = 2;
-        configPanel.add(new JLabel("Image (Bannière) :"), gbc);
-
+        // --- SECTION 2 : Personnalisation Visuelle ---
+        JPanel visualPanel = new JPanel(new GridBagLayout());
+        visualPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "🖼️ Personnalisation Visuelle"));
+        
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
+        visualPanel.add(new JLabel("Image (Bannière) :"), gbc);
         txtCustomImage = new JTextField("");
         txtCustomImage.setToolTipText("Image étroite affichée dans le menu");
         gbc.gridx = 1; gbc.weightx = 1.0;
-        configPanel.add(txtCustomImage, gbc);
-
+        visualPanel.add(txtCustomImage, gbc);
         JButton btnBrowseImage = new JButton("Parcourir...");
         gbc.gridx = 2; gbc.weightx = 0;
-        configPanel.add(btnBrowseImage, gbc);
+        visualPanel.add(btnBrowseImage, gbc);
 
-        // --- Ligne 4 : Arrière-plan personnalisé ---
-        gbc.gridx = 0; gbc.gridy = 3;
-        configPanel.add(new JLabel("Image (Fond) :"), gbc);
-
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
+        visualPanel.add(new JLabel("Image (Fond) :"), gbc);
         txtCustomBackground = new JTextField("");
         txtCustomBackground.setToolTipText("Image affichée pendant le jeu");
         gbc.gridx = 1; gbc.weightx = 1.0;
-        configPanel.add(txtCustomBackground, gbc);
-
+        visualPanel.add(txtCustomBackground, gbc);
         JButton btnBrowseBackground = new JButton("Parcourir...");
         gbc.gridx = 2; gbc.weightx = 0;
-        configPanel.add(btnBrowseBackground, gbc);
+        visualPanel.add(btnBrowseBackground, gbc);
+        
+        configPanel.add(visualPanel);
+        configPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // --- Ligne 5 : Options ---
-        JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        chkHardMode = new JCheckBox("Mode Difficile  ");
-        chkUseTapper = new JCheckBox("Utiliser Tap Manuel  ");
+        // --- SECTION 3 : Options de Génération ---
+        JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
+        optionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "⚙️ Options de Génération"));
+        
+        chkHardMode = new JCheckBox("Mode Difficile");
+        chkUseTapper = new JCheckBox("Utiliser Tap Manuel");
         optionsPanel.add(chkHardMode);
         optionsPanel.add(chkUseTapper);
-        optionsPanel.add(new JLabel("  Durée (sec) : "));
+        
+        optionsPanel.add(new JLabel("Durée (sec) :"));
         spinDuration = new JSpinner(new SpinnerNumberModel(90, 10, 600, 10));
         optionsPanel.add(spinDuration);
 
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 3;
-        configPanel.add(optionsPanel, gbc);
+        JButton btnAdvancedOptions = new JButton("Options Avancées...");
+        optionsPanel.add(btnAdvancedOptions);
 
-        mainPanel.add(configPanel, BorderLayout.NORTH);
+        btnAdvancedOptions.addActionListener(e -> showAdvancedOptionsDialog());
+        
+        configPanel.add(optionsPanel);
 
         // Zone de logs (Centre)
         logArea = new JTextArea();
         logArea.setEditable(false);
         logArea.setBackground(new Color(245, 245, 245));
-        logArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        logArea.setFont(new Font("Consolas", Font.PLAIN, 12));
+        logArea.setMargin(new Insets(5, 5, 5, 5));
         JScrollPane scrollPane = new JScrollPane(logArea);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Journal d'exécution"));
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
+        scrollPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY), "📝 Journal d'exécution"));
+        
+        // Ajouter configPanel et scrollPane au centre de mainPanel
+        JPanel centerWrapper = new JPanel(new BorderLayout(0, 15));
+        centerWrapper.add(configPanel, BorderLayout.NORTH);
+        centerWrapper.add(scrollPane, BorderLayout.CENTER);
+        mainPanel.add(centerWrapper, BorderLayout.CENTER);
 
         // Bouton de démarrage (Bas)
         btnStart = new JButton("DÉMARRER LA GÉNÉRATION DES STEPS");
@@ -155,6 +175,47 @@ public class AutoStepperGUI extends JFrame {
 
         // Redirection du flux System.out vers le JTextArea
         redirectSystemStreams();
+    }
+
+    private void showAdvancedOptionsDialog() {
+        JDialog dialog = new JDialog(this, "Options Avancées", true);
+        dialog.setSize(400, 250);
+        dialog.setLocationRelativeTo(this);
+        
+        JPanel panel = new JPanel(new GridLayout(5, 2, 10, 10));
+        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JTextField txtTitleTranslit = new JTextField(AutoStepper.titleTranslit);
+        JTextField txtSubTitleTranslit = new JTextField(AutoStepper.subTitleTranslit);
+        JTextField txtArtistTranslit = new JTextField(AutoStepper.artistTranslit);
+        JTextField txtGenre = new JTextField(AutoStepper.genre);
+
+        panel.add(new JLabel("Title Translit:"));
+        panel.add(txtTitleTranslit);
+        panel.add(new JLabel("Subtitle Translit:"));
+        panel.add(txtSubTitleTranslit);
+        panel.add(new JLabel("Artist Translit:"));
+        panel.add(txtArtistTranslit);
+        panel.add(new JLabel("Genre:"));
+        panel.add(txtGenre);
+
+        JButton btnSave = new JButton("Enregistrer");
+        btnSave.addActionListener(ev -> {
+            AutoStepper.titleTranslit = txtTitleTranslit.getText();
+            AutoStepper.subTitleTranslit = txtSubTitleTranslit.getText();
+            AutoStepper.artistTranslit = txtArtistTranslit.getText();
+            AutoStepper.genre = txtGenre.getText();
+            dialog.dispose();
+        });
+        
+        JButton btnCancel = new JButton("Annuler");
+        btnCancel.addActionListener(ev -> dialog.dispose());
+
+        panel.add(btnSave);
+        panel.add(btnCancel);
+
+        dialog.add(panel);
+        dialog.setVisible(true);
     }
 
     private void redirectSystemStreams() {
