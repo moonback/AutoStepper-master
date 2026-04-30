@@ -9,7 +9,11 @@ import ddf.minim.analysis.FFT;
 import ddf.minim.spi.AudioRecordingStream;
 import gnu.trove.list.array.TFloatArrayList;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
 
 /**
  *
@@ -72,16 +76,66 @@ public class AutoStepper {
 
     // analyseur d'arguments
     public static String getArg(String[] args, String argname, String def) {
-        try {
-            for (String s : args) {
-                s = s.replace("\"", "");
-                if (s.startsWith(argname)) {
-                    return s.substring(s.indexOf("=") + 1).toLowerCase();
-                }
+        String prefix = argname.toLowerCase() + "=";
+        for (String s : args) {
+            if (s == null) continue;
+            String clean = s.replace("\"", "").trim();
+            if (clean.toLowerCase().startsWith(prefix) && clean.length() > prefix.length()) {
+                return clean.substring(prefix.length());
             }
-        } catch (Exception e) {
         }
         return def;
+    }
+
+    private static float getFloatArg(String[] args, String argname, float def) {
+        try {
+            return Float.parseFloat(getArg(args, argname, String.valueOf(def)));
+        } catch (Exception ignored) {
+            return def;
+        }
+    }
+
+    private static int getIntArg(String[] args, String argname, int def) {
+        try {
+            return Integer.parseInt(getArg(args, argname, String.valueOf(def)));
+        } catch (Exception ignored) {
+            return def;
+        }
+    }
+
+    private static void applyJsonConfig(String[] args) {
+        String configPath = getArg(args, "config", "");
+        if (configPath.isEmpty()) return;
+        File configFile = new File(configPath);
+        if (!configFile.isFile()) {
+            System.out.println("Config introuvable : " + configFile.getAbsolutePath());
+            return;
+        }
+        try {
+            String json = Files.readString(configFile.toPath(), StandardCharsets.UTF_8);
+            MAX_BPM = parseJsonFloat(json, "maxBpm", MAX_BPM);
+            MIN_BPM = parseJsonFloat(json, "minBpm", MIN_BPM);
+            BPM_SENSITIVITY = parseJsonFloat(json, "bpmSensitivity", BPM_SENSITIVITY);
+            STARTSYNC = parseJsonFloat(json, "startSync", STARTSYNC);
+        } catch (IOException e) {
+            System.out.println("Impossible de lire le fichier config : " + e.getMessage());
+        }
+    }
+
+    private static float parseJsonFloat(String json, String key, float def) {
+        String search = "\"" + key + "\"";
+        int keyIndex = json.indexOf(search);
+        if (keyIndex < 0) return def;
+        int colon = json.indexOf(':', keyIndex);
+        if (colon < 0) return def;
+        int comma = json.indexOf(',', colon);
+        int end = comma >= 0 ? comma : json.indexOf('}', colon);
+        if (end < 0) return def;
+        try {
+            return Float.parseFloat(json.substring(colon + 1, end).trim().replace("\"", ""));
+        } catch (Exception ignored) {
+            return def;
+        }
     }
 
     // analyseur d'arguments
@@ -108,30 +162,42 @@ public class AutoStepper {
                     + "input=<fichier ou dossier> output=<dossier des chansons> duration=<secondes à traiter, par défaut : 90> tap=<true/false> tapsync=<décalage de temps du tap, par défaut : -0.11> hard=<true/false> updatesm=<true/false>");
             return;
         }
-        MAX_BPM = Float.parseFloat(getArg(args, "maxbpm", "170f"));
+        applyJsonConfig(args);
+        MAX_BPM = getFloatArg(args, "maxbpm", MAX_BPM);
         outputDir = getArg(args, "output", ".");
         if (outputDir.endsWith("/") == false)
             outputDir += "/";
         input = getArg(args, "input", ".");
-        duration = Float.parseFloat(getArg(args, "duration", "90"));
-        STARTSYNC = Float.parseFloat(getArg(args, "synctime", "0.0"));
-        BPM_SENSITIVITY = Float.parseFloat(getArg(args, "bpmsensitivity", "0.05"));
+        duration = getFloatArg(args, "duration", 90f);
+        STARTSYNC = getFloatArg(args, "synctime", STARTSYNC);
+        BPM_SENSITIVITY = getFloatArg(args, "bpmsensitivity", BPM_SENSITIVITY);
         HARDMODE = getArg(args, "hard", "false").equals("true");
         UPDATESM = getArg(args, "updatesm", "false").equals("true");
+        int threads = Math.max(1, getIntArg(args, "threads", Runtime.getRuntime().availableProcessors()));
         File inputFile = new File(input);
         if (inputFile.isFile()) {
             myAS.analyzeUsingAudioRecordingStream(inputFile, duration, outputDir);
         } else if (inputFile.isDirectory()) {
             System.out.println("Traitement du répertoire : " + inputFile.getAbsolutePath());
             File[] allfiles = inputFile.listFiles();
+            if (allfiles == null) {
+                System.out.println("Impossible de lire le contenu du dossier.");
+                return;
+            }
+            List<File> work = new ArrayList<>();
             for (File f : allfiles) {
                 String extCheck = f.getName().toLowerCase();
-                if (f.isFile() &&
-                        (extCheck.endsWith(".mp3") || extCheck.endsWith(".wav"))) {
-                    myAS.analyzeUsingAudioRecordingStream(f, duration, outputDir);
-                } else {
-                    System.out.println("Fichier non supporté ignoré : " + f.getName());
-                }
+                if (f.isFile() && (extCheck.endsWith(".mp3") || extCheck.endsWith(".wav"))) work.add(f);
+            }
+            ExecutorService pool = Executors.newFixedThreadPool(threads);
+            for (File f : work) {
+                pool.submit(() -> new AutoStepper().analyzeUsingAudioRecordingStream(f, duration, outputDir));
+            }
+            pool.shutdown();
+            try {
+                pool.awaitTermination(2, TimeUnit.HOURS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         } else {
             System.out.println("Impossible de trouver des fichiers d'entrée.");
@@ -165,7 +231,7 @@ public class AutoStepper {
         }
         if (arr.size() <= 1)
             return 0f;
-        return avg / arr.size() - 1;
+        return avg / (arr.size() - 1);
     }
 
     float getMostCommon(TFloatArrayList arr, float threshold, boolean closestToInteger) {
@@ -263,6 +329,10 @@ public class AutoStepper {
 
         System.out.println("\n[--- Traitement de " + seconds + "s de " + filename.getName() + " ---]");
         AudioRecordingStream stream = minim.loadFileStream(filename.getAbsolutePath(), fftSize, false);
+        if (stream == null) {
+            System.out.println("Impossible de lire le flux audio : " + filename.getAbsolutePath());
+            return;
+        }
 
         // on dit de "jouer" pour pouvoir lire le flux.
         stream.play();
