@@ -209,9 +209,24 @@ public class AutoStepperGUI extends JFrame {
         btnReset.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnReset.addActionListener(e -> resetAll());
         
+        JButton btnHelp = new JButton("Aide & Notice");
+        btnHelp.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnHelp.setForeground(TEXT_PRIMARY);
+        btnHelp.setBackground(new Color(59, 130, 246)); // Bleu
+        btnHelp.setFocusPainted(false);
+        btnHelp.setBorder(BorderFactory.createLineBorder(new Color(37, 99, 235)));
+        btnHelp.setPreferredSize(new Dimension(140, 56));
+        btnHelp.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnHelp.addActionListener(e -> showHelpDialog());
+        
+        JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        leftActions.setOpaque(false);
+        leftActions.add(btnReset);
+        leftActions.add(btnHelp);
+        
         JPanel actionPanel = new JPanel(new BorderLayout(10, 0));
         actionPanel.setOpaque(false);
-        actionPanel.add(btnReset, BorderLayout.WEST);
+        actionPanel.add(leftActions, BorderLayout.WEST);
         actionPanel.add(btnStart, BorderLayout.CENTER);
         
         bottomArea.add(actionPanel, BorderLayout.SOUTH);
@@ -1132,6 +1147,69 @@ public class AutoStepperGUI extends JFrame {
         updateDropZonePreview("", lblBgPreview, "Glissez une image ou vidéo ici");
         validateInputs();
         System.out.println("Application réinitialisée.");
+    }
+    
+    private void showHelpDialog() {
+        JDialog dialog = new JDialog(this, "Aide & Notice d'utilisation", true);
+        dialog.setSize(600, 650);
+        dialog.setLocationRelativeTo(this);
+        
+        JEditorPane htmlPane = new JEditorPane("text/html", "");
+        htmlPane.setEditable(false);
+        htmlPane.setBackground(BG_CARD);
+        htmlPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        htmlPane.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        
+        String htmlContent = "<html><body style='color:#E6E6F5; font-family:Segoe UI; padding:15px; margin:0;'>"
+                + "<h2 style='color:#6366F1; border-bottom: 1px solid #373748; padding-bottom: 5px;'>Bienvenue dans AutoStepper v1.8</h2>"
+                + "<p>AutoStepper est un outil qui génère automatiquement des niveaux (steps) StepMania à partir de n'importe quel fichier audio.</p>"
+                + "<h3 style='color:#10B981;'>1. Fonctionnement de base</h3>"
+                + "<ul>"
+                + "<li><b>Fichier ou Dossier</b> : Glissez un MP3/WAV ou tout un dossier dans la zone <i>Musique / Dossier</i>.</li>"
+                + "<li><b>Dossier de Sortie</b> : Choisissez où le pack StepMania sera sauvegardé (par défaut, dans le dossier actuel).</li>"
+                + "<li><b>Bouton Démarrer</b> : Lance la création. Un dossier contenant la musique, le fichier .sm généré, la bannière et l'arrière-plan sera créé.</li>"
+                + "</ul>"
+                + "<h3 style='color:#10B981;'>2. L'Éditeur & Prévisualisation</h3>"
+                + "<ul>"
+                + "<li>Cliquez sur une musique dans la <b>Liste des musiques</b>.</li>"
+                + "<li>Le lecteur audio s'active. Vous pouvez appuyer sur <b>Play</b> pour écouter et visualiser les flèches défiler en rythme !</li>"
+                + "<li>Glissez vos propres images (Bannière ou Arrière-plan) dans les encarts à droite pour personnaliser spécifiquement la chanson sélectionnée.</li>"
+                + "</ul>"
+                + "<h3 style='color:#10B981;'>3. Options Algorithmiques</h3>"
+                + "<ul>"
+                + "<li><b>Mode Difficile</b> : Augmente drastiquement la densité des flèches générées.</li>"
+                + "<li><b>Mines Intelligentes</b> : Ajoute des mines (M) lors des moments très intenses de la musique.</li>"
+                + "<li><b>Couper les Silences</b> : L'IA détecte si la chanson a un long silence au début ou à la fin, et l'ignore automatiquement pour éviter de générer des pas dans le vide.</li>"
+                + "<li><b>BPM Variable</b> : Découpe la musique en segments. Si le tempo change (ex: transition ou accélération), le fichier .sm s'adaptera au lieu de garder un BPM fixe.</li>"
+                + "</ul>"
+                + "<hr style='border:0; border-bottom:1px solid #373748; margin-top:20px;'/>"
+                + "<p style='font-size:11px; color:#9494A8; text-align:center;'>Développé par Maysson.D</p>"
+                + "</body></html>";
+                
+        htmlPane.setText(htmlContent);
+        htmlPane.setCaretPosition(0);
+        
+        JScrollPane scrollPane = new JScrollPane(htmlPane);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        
+        JButton btnClose = new JButton("Fermer");
+        btnClose.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnClose.setForeground(Color.WHITE);
+        btnClose.setBackground(ACCENT);
+        btnClose.setFocusPainted(false);
+        btnClose.setBorder(new EmptyBorder(8, 20, 8, 20));
+        btnClose.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnClose.addActionListener(e -> dialog.dispose());
+        
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.setBackground(BG_DARK);
+        bottomPanel.add(btnClose);
+        
+        dialog.setLayout(new BorderLayout());
+        dialog.add(scrollPane, BorderLayout.CENTER);
+        dialog.add(bottomPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
     }
 
     // ============================================================
