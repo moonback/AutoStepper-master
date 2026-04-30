@@ -19,16 +19,15 @@ import java.io.OutputStream;
  * @author Phr00t
  */
 public class SMGenerator {
- 
-    private static String Header = 
-            "#TITLE:$TITLE;\n" +
+
+    private static String Header = "#TITLE:$TITLE;\n" +
             "#SUBTITLE:;\n" +
-            "#ARTIST:AutoStepper by phr00t.com;\n" +
+            "#ARTIST:AutoStepper by Maysson.D;\n" +
             "#TITLETRANSLIT:;\n" +
             "#SUBTITLETRANSLIT:;\n" +
             "#ARTISTTRANSLIT:;\n" +
             "#GENRE:;\n" +
-            "#CREDIT:AutoStepper by phr00t.com;\n" +
+            "#CREDIT:AutoStepper by Maysson.D;\n" +
             "#BANNER:$BGIMAGE;\n" +
             "#BACKGROUND:$BGIMAGE;\n" +
             "#LYRICSPATH:;\n" +
@@ -42,34 +41,29 @@ public class SMGenerator {
             "#STOPS:;\n" +
             "#KEYSOUNDS:;\n" +
             "#ATTACKS:;";
-    
-    public static String Challenge =
-            "Challenge:\n" +
+
+    public static String Challenge = "Challenge:\n" +
             "     10:";
 
-    public static String Hard =
-            "Hard:\n" +
+    public static String Hard = "Hard:\n" +
             "     8:";
 
-    public static String Medium =
-            "Medium:\n" +
+    public static String Medium = "Medium:\n" +
             "     6:";
 
-    public static String Easy =
-            "Easy:\n" +
+    public static String Easy = "Easy:\n" +
             "     4:";
 
-    public static String Beginner =
-            "Beginner:\n" +
+    public static String Beginner = "Beginner:\n" +
             "     2:";
-    
-    private static String NoteFramework =
-            "//---------------dance-single - ----------------\n" +
+
+    private static String NoteFramework = "//---------------dance-single - ----------------\n" +
             "#NOTES:\n" +
             "     dance-single:\n" +
             "     :\n" +
             "     $DIFFICULTY\n" +
-            "     0.733800,0.772920,0.048611,0.850698,0.060764,634.000000,628.000000,6.000000,105.000000,8.000000,0.000000,0.733800,0.772920,0.048611,0.850698,0.060764,634.000000,628.000000,6.000000,105.000000,8.000000,0.000000:\n" +
+            "     0.733800,0.772920,0.048611,0.850698,0.060764,634.000000,628.000000,6.000000,105.000000,8.000000,0.000000,0.733800,0.772920,0.048611,0.850698,0.060764,634.000000,628.000000,6.000000,105.000000,8.000000,0.000000:\n"
+            +
             "$NOTES\n" +
             ";\n\n";
 
@@ -88,18 +82,20 @@ public class SMGenerator {
             is.close();
             os.close();
         }
-    }    
-    
+    }
+
     public static void AddNotes(BufferedWriter smfile, String difficulty, String notes) {
         try {
             smfile.write(NoteFramework.replace("$DIFFICULTY", difficulty).replace("$NOTES", notes));
-        } catch(Exception e) { }
+        } catch (Exception e) {
+        }
     }
-    
+
     public static void Complete(BufferedWriter smfile) {
         try {
             smfile.close();
-        } catch(Exception e) { }
+        } catch (Exception e) {
+        }
     }
 
     public static File getSMFile(File songFile, String outputdir) {
@@ -107,10 +103,11 @@ public class SMGenerator {
         File dir = new File(outputdir, filename + "_dir/");
         return new File(dir, filename + ".sm");
     }
-    
+
     public static BufferedWriter GenerateSM(float BPM, float startTime, File songfile, String outputdir) {
         String filename = songfile.getName();
-        String songname = filename.replace(".mp3", " ").replace(".wav", " ").replace(".com", " ").replace(".org", " ").replace(".info", " ");
+        String songname = filename.replace(".mp3", " ").replace(".wav", " ").replace(".com", " ").replace(".org", " ")
+                .replace(".info", " ");
         String shortName = songname.length() > 30 ? songname.substring(0, 30) : songname;
         File dir = new File(outputdir, filename + "_dir/");
         dir.mkdirs();
@@ -118,22 +115,29 @@ public class SMGenerator {
         // get image for sm
         File imgFile = new File(dir, filename + "_img.png");
         String imgFileName = "";
-        if( imgFile.exists() == false ) {
-            System.out.println("Attempting to get image for background & banner...");            
-            GoogleImageSearch.FindAndSaveImage(songname.replace("(", " ").replace(")", " ").replace("www.", " ").replace("_", " ").replace("-", " ").replace("&", " ").replace("[", " ").replace("]", " "), imgFile.getAbsolutePath());
+        if (imgFile.exists() == false) {
+            System.out.println("Attempting to get image for background & banner...");
+            GoogleImageSearch.FindAndSaveImage(
+                    songname.replace("(", " ").replace(")", " ").replace("www.", " ").replace("_", " ")
+                            .replace("-", " ").replace("&", " ").replace("[", " ").replace("]", " "),
+                    imgFile.getAbsolutePath());
         }
-        if( imgFile.exists() ) {
+        if (imgFile.exists()) {
             System.out.println("Got an image file!");
             imgFileName = imgFile.getName();
-        } else System.out.println("No image file to use :(");
+        } else
+            System.out.println("No image file to use :(");
         try {
             smfile.delete();
             copyFileUsingStream(songfile, new File(dir, filename));
             BufferedWriter writer = new BufferedWriter(new FileWriter(smfile));
-            writer.write(Header.replace("$TITLE", shortName).replace("$BGIMAGE", imgFileName).replace("$MUSICFILE", filename)
-                         .replace("$STARTTIME", Float.toString(startTime + AutoStepper.STARTSYNC)).replace("$BPM", Float.toString(BPM)));
+            writer.write(
+                    Header.replace("$TITLE", shortName).replace("$BGIMAGE", imgFileName).replace("$MUSICFILE", filename)
+                            .replace("$STARTTIME", Float.toString(startTime + AutoStepper.STARTSYNC))
+                            .replace("$BPM", Float.toString(BPM)));
             return writer;
-        } catch(Exception e) {}
+        } catch (Exception e) {
+        }
         return null;
     }
 }

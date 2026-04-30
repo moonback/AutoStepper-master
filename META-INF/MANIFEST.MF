@@ -1,0 +1,7 @@
+Manifest-Version: 1.0 
+Main-Class: autostepper.AutoStepper 
+Class-Path: lib/jl1.0.1.jar lib/jsoup-1.11.2.jar lib/mp3spi1.9.5.jar lib
+ /tritonus_aos.jar lib/tritonus_share.jar lib/trove-3.0.3.jar lib/jopt-s
+ imple-5.0.4.jar lib/jsminim.jar 
+Created-By: 25.0.2 (Oracle Corporation)
+
