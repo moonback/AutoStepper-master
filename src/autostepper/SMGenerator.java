@@ -11,7 +11,7 @@ import java.io.OutputStream;
 
 /**
  *
- * @author Phr00t
+ * @author M.D
  */
 public class SMGenerator {
 
@@ -74,8 +74,10 @@ public class SMGenerator {
                 os.write(buffer, 0, length);
             }
         } finally {
-            if (is != null) is.close();
-            if (os != null) os.close();
+            if (is != null)
+                is.close();
+            if (os != null)
+                os.close();
         }
     }
 
@@ -99,10 +101,11 @@ public class SMGenerator {
         return new File(dir, filename + ".sm");
     }
 
-    public static BufferedWriter GenerateSM(float BPM, float startTime, File songfile, String outputdir, String bpmString, AutoStepper.Metadata md, String customImagePath, String customBackgroundPath) {
+    public static BufferedWriter GenerateSM(float BPM, float startTime, File songfile, String outputdir,
+            String bpmString, AutoStepper.Metadata md, String customImagePath, String customBackgroundPath) {
         String filename = songfile.getName();
         String songname = filename.replace(".mp3", "").replace(".wav", "").replace(".MP3", "").replace(".WAV", "");
-        
+
         String sTitle = md != null ? md.songTitle : "";
         String sArtist = md != null ? md.songArtist : "";
 
@@ -110,14 +113,16 @@ public class SMGenerator {
         if (sTitle.isEmpty() || sArtist.isEmpty()) {
             if (songname.contains(" - ")) {
                 String[] parts = songname.split(" - ", 2);
-                if (sArtist.isEmpty()) sArtist = parts[0].trim();
-                if (sTitle.isEmpty()) sTitle = parts[1].trim();
+                if (sArtist.isEmpty())
+                    sArtist = parts[0].trim();
+                if (sTitle.isEmpty())
+                    sTitle = parts[1].trim();
             }
         }
 
         String finalTitle = (sTitle != null && !sTitle.isEmpty()) ? sTitle : songname;
         String finalArtist = (sArtist != null && !sArtist.isEmpty()) ? sArtist : "AutoStepper par Maysson.D";
-        
+
         File dir = new File(outputdir, filename + "_dir/");
         dir.mkdirs();
         File smfile = new File(dir, filename + ".sm");
@@ -159,8 +164,10 @@ public class SMGenerator {
             }
             if (searchImgFile.exists()) {
                 System.out.println("Image internet récupérée !");
-                if (bannerFileName.isEmpty()) bannerFileName = searchImgFile.getName();
-                if (bgFileName.isEmpty()) bgFileName = searchImgFile.getName();
+                if (bannerFileName.isEmpty())
+                    bannerFileName = searchImgFile.getName();
+                if (bgFileName.isEmpty())
+                    bgFileName = searchImgFile.getName();
             } else {
                 System.out.println("Aucune image internet trouvée :(");
             }
@@ -179,9 +186,12 @@ public class SMGenerator {
             writer.write(
                     Header.replace("$TITLE", finalTitle)
                             .replace("$ARTIST", finalArtist)
-                            .replace("$TITLETRANSLIT", AutoStepper.titleTranslit != null ? AutoStepper.titleTranslit : "")
-                            .replace("$SUBTITLETRANSLIT", AutoStepper.subTitleTranslit != null ? AutoStepper.subTitleTranslit : "")
-                            .replace("$ARTISTTRANSLIT", AutoStepper.artistTranslit != null ? AutoStepper.artistTranslit : "")
+                            .replace("$TITLETRANSLIT",
+                                    AutoStepper.titleTranslit != null ? AutoStepper.titleTranslit : "")
+                            .replace("$SUBTITLETRANSLIT",
+                                    AutoStepper.subTitleTranslit != null ? AutoStepper.subTitleTranslit : "")
+                            .replace("$ARTISTTRANSLIT",
+                                    AutoStepper.artistTranslit != null ? AutoStepper.artistTranslit : "")
                             .replace("$GENRE", AutoStepper.genre != null ? AutoStepper.genre : "")
                             .replace("$BANNERIMAGE", bannerFileName)
                             .replace("$BACKIMAGE", bgFileName)

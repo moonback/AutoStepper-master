@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 /**
  *
- * @author Phr00t
+ * @author M.D
  */
 public class AutoStepper {
 
@@ -37,15 +37,19 @@ public class AutoStepper {
 
     public static Metadata loadMetadata(String filename) {
         Metadata md = new Metadata();
-        if (minim == null) minim = new Minim(myAS);
+        if (minim == null)
+            minim = new Minim(myAS);
         try {
             AudioSample sample = minim.loadSample(filename, 512);
             if (sample != null) {
                 AudioMetaData meta = sample.getMetaData();
                 if (meta != null) {
-                    if (!meta.title().trim().isEmpty()) md.songTitle = meta.title();
-                    if (!meta.author().trim().isEmpty()) md.songArtist = meta.author();
-                    if (!meta.genre().trim().isEmpty() && genre.isEmpty()) genre = meta.genre();
+                    if (!meta.title().trim().isEmpty())
+                        md.songTitle = meta.title();
+                    if (!meta.author().trim().isEmpty())
+                        md.songArtist = meta.author();
+                    if (!meta.genre().trim().isEmpty() && genre.isEmpty())
+                        genre = meta.genre();
                 }
                 sample.close();
             }
@@ -125,7 +129,8 @@ public class AutoStepper {
         UPDATESM = getArg(args, "updatesm", "false").equals("true");
         File inputFile = new File(input);
         if (inputFile.isFile()) {
-            myAS.analyzeUsingAudioRecordingStream(inputFile, duration, outputDir, loadMetadata(inputFile.getAbsolutePath()), null, null);
+            myAS.analyzeUsingAudioRecordingStream(inputFile, duration, outputDir,
+                    loadMetadata(inputFile.getAbsolutePath()), null, null);
         } else if (inputFile.isDirectory()) {
             System.out.println("Traitement du répertoire : " + inputFile.getAbsolutePath());
             File[] allfiles = inputFile.listFiles();
@@ -133,7 +138,8 @@ public class AutoStepper {
                 String extCheck = f.getName().toLowerCase();
                 if (f.isFile() &&
                         (extCheck.endsWith(".mp3") || extCheck.endsWith(".wav"))) {
-                    myAS.analyzeUsingAudioRecordingStream(f, duration, outputDir, loadMetadata(f.getAbsolutePath()), null, null);
+                    myAS.analyzeUsingAudioRecordingStream(f, duration, outputDir, loadMetadata(f.getAbsolutePath()),
+                            null, null);
                 } else {
                     System.out.println("Fichier non supporté ignoré : " + f.getName());
                 }
@@ -263,7 +269,8 @@ public class AutoStepper {
             common.add(commonBPM);
     }
 
-    void analyzeUsingAudioRecordingStream(File filename, float seconds, String outputDir, Metadata md, String customImagePath, String customBackgroundPath) {
+    void analyzeUsingAudioRecordingStream(File filename, float seconds, String outputDir, Metadata md,
+            String customImagePath, String customBackgroundPath) {
         int fftSize = 512;
 
         System.out.println("\n[--- Traitement de " + seconds + "s de " + filename.getName() + " ---]");
@@ -311,12 +318,12 @@ public class AutoStepper {
         float largestAvg = 0f, largestMax = 0f;
         int lowFreq = fft.freqToIndex(300f);
         int highFreq = fft.freqToIndex(3000f);
-        
+
         // --- Détection des Silences ---
         float firstSoundTime = -1f;
         float lastSoundTime = 0f;
         float SILENCE_THRESHOLD = 0.01f;
-        
+
         for (int chunkIdx = 0; chunkIdx < totalChunks; ++chunkIdx) {
             stream.read(buffer);
             float[] data = buffer.getChannel(0);
@@ -358,19 +365,21 @@ public class AutoStepper {
                 fewTimes[SNARE].add(time);
             if (fewbde.isOnset())
                 fewTimes[ENERGY].add(time);
-            
+
             // Détection des zones non-silencieuses
             float maxAmp = 0f;
             for (int s = 0; s < data.length; s++) {
                 float absVal = Math.abs(data[s]);
-                if (absVal > maxAmp) maxAmp = absVal;
+                if (absVal > maxAmp)
+                    maxAmp = absVal;
             }
             if (maxAmp > SILENCE_THRESHOLD) {
-                if (firstSoundTime < 0f) firstSoundTime = time;
+                if (firstSoundTime < 0f)
+                    firstSoundTime = time;
                 lastSoundTime = time;
             }
         }
-        
+
         // --- Appliquer la détection des silences ---
         if (DETECT_SILENCE) {
             if (firstSoundTime > 0.5f) {
@@ -393,15 +402,18 @@ public class AutoStepper {
             MidFFTMaxes.replace(i, MidFFTMaxes.get(i) * scaleMaxBy);
         }
 
-        // calculer les différences entre les éléments percussifs avec pondération (IA Smart BPM)
+        // calculer les différences entre les éléments percussifs avec pondération (IA
+        // Smart BPM)
         TFloatArrayList common = new TFloatArrayList();
         float doubleSpeed = 60f / (MAX_BPM * 2f);
-        
+
         for (int i = 0; i < fewTimes.length; i++) {
             int weight = 1;
-            if (i == KICKS) weight = 4;   // Les basses sont les plus fiables pour le BPM
-            if (i == ENERGY) weight = 2;  // L'énergie globale est un bon indicateur secondaire
-            
+            if (i == KICKS)
+                weight = 4; // Les basses sont les plus fiables pour le BPM
+            if (i == ENERGY)
+                weight = 2; // L'énergie globale est un bon indicateur secondaire
+
             for (int w = 0; w < weight; w++) {
                 AddCommonBPMs(common, fewTimes[i], doubleSpeed, timePerSample * 1.5f);
                 AddCommonBPMs(common, manyTimes[i], doubleSpeed, timePerSample * 1.5f);
@@ -441,11 +453,12 @@ public class AutoStepper {
                 return;
             }
             BPM = Math.round(getMostCommon(common, 0.5f, true));
-            
+
             // Calcul de la confiance (BPM Confidence)
             int matches = 0;
             for (int i = 0; i < common.size(); i++) {
-                if (Math.abs(common.get(i) - BPM) < 1.0f) matches++;
+                if (Math.abs(common.get(i) - BPM) < 1.0f)
+                    matches++;
             }
             float confidence = (float) matches / common.size() * 100f;
 
@@ -460,7 +473,7 @@ public class AutoStepper {
             startTimes.add(kickStartTime);
             startTimes.add(kickStartTime);
             startTime = -getMostCommon(startTimes, 0.02f, false);
-            
+
             System.out.println(" > Indice de Confiance BPM : " + String.format("%.1f", confidence) + "%");
         }
         System.out.println("Temps par battement : " + timePerBeat + ", BPM : " + BPM);
@@ -471,10 +484,11 @@ public class AutoStepper {
         for (int i = 0; i < fewTimes.length; i++) {
             avgEnergy += fewTimes[i].size();
         }
-        avgEnergy /= (seconds > 0 ? seconds : 180f); 
+        avgEnergy /= (seconds > 0 ? seconds : 180f);
 
         int suggestedRating = Math.round(BPM / 18f) + Math.min(6, Math.round(avgEnergy / 15f));
-        if (HARDMODE) suggestedRating += 2;
+        if (HARDMODE)
+            suggestedRating += 2;
         suggestedRating = Math.max(1, Math.min(15, suggestedRating));
 
         System.out.println("\n[🤖 IA ANALYSE]");
@@ -489,7 +503,7 @@ public class AutoStepper {
         TFloatArrayList segmentBPMs = new TFloatArrayList();
         boolean hasVariableBPM = false;
         String bpmString = "0.000000=" + BPM;
-        
+
         if (VARIABLE_BPM) {
             for (int seg = 0; seg < NUM_SEGMENTS; seg++) {
                 float segStart = seg * segmentDuration;
@@ -497,14 +511,17 @@ public class AutoStepper {
                 TFloatArrayList segKicks = new TFloatArrayList();
                 for (int i = 0; i < fewTimes[KICKS].size(); i++) {
                     float t = fewTimes[KICKS].get(i);
-                    if (t >= segStart && t < segEnd) segKicks.add(t);
+                    if (t >= segStart && t < segEnd)
+                        segKicks.add(t);
                 }
                 if (segKicks.size() > 4) {
                     TFloatArrayList diffs = calculateDifferences(segKicks, doubleSpeed);
                     if (diffs.size() > 2) {
                         float localBPM = 60f / getMostCommon(diffs, timePerSample * 1.5f, true);
-                        if (localBPM > MAX_BPM) localBPM *= 0.5f;
-                        if (localBPM < MIN_BPM) localBPM *= 2f;
+                        if (localBPM > MAX_BPM)
+                            localBPM *= 0.5f;
+                        if (localBPM < MIN_BPM)
+                            localBPM *= 2f;
                         segmentBPMs.add(Math.round(localBPM));
                     } else {
                         segmentBPMs.add(BPM);
@@ -513,7 +530,7 @@ public class AutoStepper {
                     segmentBPMs.add(BPM);
                 }
             }
-            
+
             // Vérifier s'il y a des variations significatives
             for (int i = 0; i < segmentBPMs.size(); i++) {
                 float diff = Math.abs(segmentBPMs.get(i) - BPM) / BPM;
@@ -523,24 +540,26 @@ public class AutoStepper {
                 }
             }
         }
-        
+
         if (hasVariableBPM) {
             StringBuilder sb = new StringBuilder();
             float beatsAccum = 0f;
             for (int i = 0; i < segmentBPMs.size(); i++) {
-                if (i > 0) sb.append(",");
+                if (i > 0)
+                    sb.append(",");
                 sb.append(String.format("%.6f", beatsAccum)).append("=").append(segmentBPMs.get(i));
                 beatsAccum += segmentDuration / (60f / segmentBPMs.get(i)) * segmentBPMs.get(i) / BPM;
             }
             bpmString = sb.toString();
             System.out.println("\n[\u23F1\uFE0F BPM VARIABLE DÉTECTÉ]");
             for (int i = 0; i < segmentBPMs.size(); i++) {
-                System.out.println(" > Segment " + (i+1) + " : " + segmentBPMs.get(i) + " BPM");
+                System.out.println(" > Segment " + (i + 1) + " : " + segmentBPMs.get(i) + " BPM");
             }
         }
 
         // génération du fichier SM
-        BufferedWriter smfile = SMGenerator.GenerateSM(BPM, startTime, filename, outputDir, bpmString, md, customImagePath, customBackgroundPath);
+        BufferedWriter smfile = SMGenerator.GenerateSM(BPM, startTime, filename, outputDir, bpmString, md,
+                customImagePath, customBackgroundPath);
 
         if (HARDMODE)
             System.out.println("Mode Difficile activé ! Des flèches en plus pour vous ! :-O");
