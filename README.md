@@ -8,7 +8,7 @@ AutoStepper est un programme console Java conçu pour créer automatiquement des
 *   Plusieurs méthodes de détection du tempo (BPM)
 *   Support multiplateforme
 
-Voici donc **AutoStepper** par Maysson.D Software (www.phr00t.com). Vous pouvez obtenir le programme complet dans le dossier "dist".
+Voici donc **AutoStepper** par Maysson.D. Vous pouvez obtenir le programme complet dans le dossier "dist".
 
 Il fonctionne en ligne de commande avec des arguments, tous optionnels. Si vous lancez simplement le programme Java, il scannera et traitera tous les fichiers mp3 (et wav) du répertoire courant, et créera des dossiers pour chaque chanson dans le même répertoire (avec 90 secondes de "steps").
 
@@ -30,13 +30,11 @@ Vous pouvez également utiliser le résultat comme base pour éditer et perfecti
 
 Je précise qu'il est optimisé pour une utilisation sur tapis (pad), et non pour le clavier (la difficulté n'est pas assez élevée, par exemple).
 
-    Phr00t
-
 ** LICENCE : Licence MIT modifiée pour restreindre l'utilisation commerciale et exiger l'attribution **
 
-Copyright (c) 2018 Maysson.D Software
+Copyright (c) 2018 Maysson.D
 
-L'autorisation est accordée par la présente, gratuitement, à toute personne obtenant une copie de ce logiciel et des fichiers de documentation associés (le "Logiciel"), de l'utiliser sous réserve de restrictions d'utilisation commerciale et d'une obligation d'attribution à Maysson.D Software. Vous êtes libre d'utiliser, copier, modifier, fusionner, publier, distribuer ce Logiciel pour des usages privés, personnels et non commerciaux tant que Maysson.D Software est crédité.
+L'autorisation est accordée par la présente, gratuitement, à toute personne obtenant une copie de ce logiciel et des fichiers de documentation associés (le "Logiciel"), de l'utiliser sous réserve de restrictions d'utilisation commerciale et d'une obligation d'attribution à Maysson.D. Vous êtes libre d'utiliser, copier, modifier, fusionner, publier, distribuer ce Logiciel pour des usages privés, personnels et non commerciaux tant que Maysson.D est crédité.
 
 L'avis de copyright ci-dessus et cet avis d'autorisation doivent être inclus dans toutes les copies ou parties substantielles du Logiciel.
 

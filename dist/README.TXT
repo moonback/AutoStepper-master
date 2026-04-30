@@ -1,32 +1,31 @@
-========================
-BUILD OUTPUT DESCRIPTION
-========================
+===========================================
+DESCRIPTION DU RÉSULTAT DE LA COMPILATION
+===========================================
 
-When you build an Java application project that has a main class, the IDE
-automatically copies all of the JAR
-files on the projects classpath to your projects dist/lib folder. The IDE
-also adds each of the JAR files to the Class-Path element in the application
-JAR files manifest file (MANIFEST.MF).
+Lorsque vous compilez un projet d'application Java possédant une classe principale, l'IDE
+copie automatiquement tous les fichiers JAR du classpath du projet dans le dossier
+dist/lib de votre projet. L'IDE ajoute également chaque fichier JAR à l'élément
+Class-Path du fichier manifeste (MANIFEST.MF) du fichier JAR de l'application.
 
-To run the project from the command line, go to the dist folder and
-type the following:
+Pour exécuter le projet depuis la ligne de commande, allez dans le dossier dist et
+tapez ce qui suit :
 
 java -jar "AutoStepper.jar" 
 
-To distribute this project, zip up the dist folder (including the lib folder)
-and distribute the ZIP file.
+Pour distribuer ce projet, compressez le dossier dist (incluant le dossier lib)
+et distribuez le fichier ZIP.
 
-Notes:
+Remarques :
 
-* If two JAR files on the project classpath have the same name, only the first
-JAR file is copied to the lib folder.
-* Only JAR files are copied to the lib folder.
-If the classpath contains other types of files or folders, these files (folders)
-are not copied.
-* If a library on the projects classpath also has a Class-Path element
-specified in the manifest,the content of the Class-Path element has to be on
-the projects runtime path.
-* To set a main class in a standard Java project, right-click the project node
-in the Projects window and choose Properties. Then click Run and enter the
-class name in the Main Class field. Alternatively, you can manually type the
-class name in the manifest Main-Class element.
+* Si deux fichiers JAR sur le classpath du projet portent le même nom, seul le premier
+fichier JAR est copié dans le dossier lib.
+* Seuls les fichiers JAR sont copiés dans le dossier lib.
+Si le classpath contient d'autres types de fichiers ou de dossiers, ces fichiers (dossiers)
+ne sont pas copiés.
+* Si une bibliothèque sur le classpath du projet possède également un élément Class-Path
+spécifié dans son manifeste, le contenu de cet élément Class-Path doit se trouver sur
+le chemin d'exécution (runtime path) du projet.
+* Pour définir une classe principale dans un projet Java standard, faites un clic droit sur le nœud
+du projet dans la fenêtre Projets et choisissez Propriétés. Cliquez ensuite sur Exécuter et saisissez
+le nom de la classe dans le champ Classe Principale. Vous pouvez également saisir manuellement le
+nom de la classe dans l'élément Main-Class du manifeste.
