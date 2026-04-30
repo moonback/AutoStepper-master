@@ -23,6 +23,8 @@ public class AutoStepperGUI extends JFrame {
     private JCheckBox chkHardMode;
     private JTextArea logArea;
     private JButton btnStart;
+    private JLabel lblBannerPreview;
+    private JLabel lblBgPreview;
     
     private Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 
@@ -108,6 +110,14 @@ public class AutoStepperGUI extends JFrame {
         JButton btnBrowseImage = new JButton("Parcourir...");
         gbc.gridx = 2; gbc.weightx = 0;
         visualPanel.add(btnBrowseImage, gbc);
+        
+        lblBannerPreview = new JLabel("Pas de Banner");
+        lblBannerPreview.setPreferredSize(new Dimension(100, 30));
+        lblBannerPreview.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        lblBannerPreview.setHorizontalAlignment(SwingConstants.CENTER);
+        lblBannerPreview.setForeground(Color.GRAY);
+        gbc.gridx = 3; gbc.weightx = 0;
+        visualPanel.add(lblBannerPreview, gbc);
 
         gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
         JLabel lblBg = new JLabel("Image (Fond) :"); lblBg.setForeground(textColor);
@@ -122,6 +132,14 @@ public class AutoStepperGUI extends JFrame {
         JButton btnBrowseBackground = new JButton("Parcourir...");
         gbc.gridx = 2; gbc.weightx = 0;
         visualPanel.add(btnBrowseBackground, gbc);
+
+        lblBgPreview = new JLabel("Pas de Fond");
+        lblBgPreview.setPreferredSize(new Dimension(100, 30));
+        lblBgPreview.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        lblBgPreview.setHorizontalAlignment(SwingConstants.CENTER);
+        lblBgPreview.setForeground(Color.GRAY);
+        gbc.gridx = 3; gbc.weightx = 0;
+        visualPanel.add(lblBgPreview, gbc);
         
         configPanel.add(visualPanel);
         configPanel.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -221,6 +239,7 @@ public class AutoStepperGUI extends JFrame {
         loadPreferences();
         setupValidation();
         setupDragAndDrop();
+        setupImagePreviews();
         
         // Sauvegarde des préférences à la fermeture
         this.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -262,6 +281,39 @@ public class AutoStepperGUI extends JFrame {
     private void validateInputs() {
         String in = txtInput.getText().trim();
         btnStart.setEnabled(!in.isEmpty());
+    }
+
+    private void setupImagePreviews() {
+        DocumentListener previewListener = new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { updateAllPreviews(); }
+            public void removeUpdate(DocumentEvent e) { updateAllPreviews(); }
+            public void changedUpdate(DocumentEvent e) { updateAllPreviews(); }
+        };
+        txtCustomImage.getDocument().addDocumentListener(previewListener);
+        txtCustomBackground.getDocument().addDocumentListener(previewListener);
+        updateAllPreviews();
+    }
+
+    private void updateAllPreviews() {
+        updateImagePreview(txtCustomImage.getText(), lblBannerPreview, 100, 30);
+        updateImagePreview(txtCustomBackground.getText(), lblBgPreview, 100, 30);
+    }
+
+    private void updateImagePreview(String path, JLabel label, int w, int h) {
+        if (path == null || path.trim().isEmpty() || !new File(path).exists()) {
+            label.setIcon(null);
+            label.setText("Aucun");
+            return;
+        }
+        try {
+            ImageIcon icon = new ImageIcon(path);
+            Image img = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
+            label.setIcon(new ImageIcon(img));
+            label.setText("");
+        } catch (Exception e) {
+            label.setIcon(null);
+            label.setText("Erreur");
+        }
     }
 
     private void setupDragAndDrop() {
