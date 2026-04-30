@@ -1,5 +1,6 @@
 package autostepper;
 
+import ddf.minim.AudioMetaData;
 import ddf.minim.AudioSample;
 import ddf.minim.Minim;
 import ddf.minim.MultiChannelBuffer;
@@ -23,6 +24,8 @@ public class AutoStepper {
     public static boolean USETAPPER = false, HARDMODE = false, UPDATESM = false;
     public static String customImagePath = null;
     public static String customBackgroundPath = null;
+    public static String songTitle = "";
+    public static String songArtist = "";
     public static String titleTranslit = "";
     public static String subTitleTranslit = "";
     public static String artistTranslit = "";
@@ -30,6 +33,23 @@ public class AutoStepper {
 
     public static Minim minim;
     public static AutoStepper myAS = new AutoStepper();
+
+    public static void loadMetadata(String filename) {
+        songTitle = "";
+        songArtist = "";
+        genre = "";
+        if (minim == null) minim = new Minim(myAS);
+        AudioSample sample = minim.loadSample(filename, 512);
+        if (sample != null) {
+            AudioMetaData meta = sample.getMetaData();
+            if (meta != null) {
+                if (!meta.title().trim().isEmpty()) songTitle = meta.title();
+                if (!meta.author().trim().isEmpty()) songArtist = meta.author();
+                if (!meta.genre().trim().isEmpty()) genre = meta.genre();
+            }
+            sample.close();
+        }
+    }
 
     public static final int KICKS = 0, ENERGY = 1, SNARE = 2, HAT = 3;
 

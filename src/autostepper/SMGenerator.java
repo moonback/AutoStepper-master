@@ -17,7 +17,7 @@ public class SMGenerator {
 
     private static String Header = "#TITLE:$TITLE;\n" +
             "#SUBTITLE:;\n" +
-            "#ARTIST:AutoStepper par Maysson.D;\n" +
+            "#ARTIST:$ARTIST;\n" +
             "#TITLETRANSLIT:$TITLETRANSLIT;\n" +
             "#SUBTITLETRANSLIT:$SUBTITLETRANSLIT;\n" +
             "#ARTISTTRANSLIT:$ARTISTTRANSLIT;\n" +
@@ -162,8 +162,12 @@ public class SMGenerator {
             }
 
             BufferedWriter writer = new BufferedWriter(new FileWriter(smfile));
+            String finalTitle = (AutoStepper.songTitle != null && !AutoStepper.songTitle.isEmpty()) ? AutoStepper.songTitle : shortName;
+            String finalArtist = (AutoStepper.songArtist != null && !AutoStepper.songArtist.isEmpty()) ? AutoStepper.songArtist : "AutoStepper par Maysson.D";
+            
             writer.write(
-                    Header.replace("$TITLE", shortName)
+                    Header.replace("$TITLE", finalTitle)
+                            .replace("$ARTIST", finalArtist)
                             .replace("$TITLETRANSLIT", AutoStepper.titleTranslit != null ? AutoStepper.titleTranslit : "")
                             .replace("$SUBTITLETRANSLIT", AutoStepper.subTitleTranslit != null ? AutoStepper.subTitleTranslit : "")
                             .replace("$ARTISTTRANSLIT", AutoStepper.artistTranslit != null ? AutoStepper.artistTranslit : "")

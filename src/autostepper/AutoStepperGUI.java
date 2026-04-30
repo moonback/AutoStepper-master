@@ -185,7 +185,11 @@ public class AutoStepperGUI extends JFrame {
             JFileChooser chooser = new JFileChooser(txtInput.getText());
             chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
             if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                txtInput.setText(chooser.getSelectedFile().getAbsolutePath());
+                String path = chooser.getSelectedFile().getAbsolutePath();
+                txtInput.setText(path);
+                if (path.toLowerCase().endsWith(".mp3") || path.toLowerCase().endsWith(".wav")) {
+                    AutoStepper.loadMetadata(path);
+                }
             }
         });
 
@@ -288,7 +292,11 @@ public class AutoStepperGUI extends JFrame {
                     Transferable t = support.getTransferable();
                     List<File> files = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
                     if (files != null && files.size() > 0) {
-                        textField.setText(files.get(0).getAbsolutePath());
+                        String path = files.get(0).getAbsolutePath();
+                        textField.setText(path);
+                        if (textField == txtInput && (path.toLowerCase().endsWith(".mp3") || path.toLowerCase().endsWith(".wav"))) {
+                            AutoStepper.loadMetadata(path);
+                        }
                         validateInputs();
                     }
                     return true;
@@ -391,6 +399,7 @@ public class AutoStepperGUI extends JFrame {
                 File inputFile = new File(inputPath);
                 if (inputFile.exists()) {
                     if (inputFile.isFile()) {
+                        AutoStepper.loadMetadata(inputFile.getAbsolutePath());
                         AutoStepper.myAS.analyzeUsingAudioRecordingStream(inputFile, duration, outputPath);
                     } else {
                         System.out.println("Traitement du répertoire : " + inputFile.getAbsolutePath());
@@ -399,6 +408,7 @@ public class AutoStepperGUI extends JFrame {
                             for (File f : allfiles) {
                                 String extCheck = f.getName().toLowerCase();
                                 if (f.isFile() && (extCheck.endsWith(".mp3") || extCheck.endsWith(".wav"))) {
+                                    AutoStepper.loadMetadata(f.getAbsolutePath());
                                     AutoStepper.myAS.analyzeUsingAudioRecordingStream(f, duration, outputPath);
                                 }
                             }
