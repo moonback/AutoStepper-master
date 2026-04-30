@@ -1,4 +1,4 @@
-# AutoStepper v1.7 - Par Maysson.D
+# AutoStepper v1.8 - Par Maysson.D
 
 **AutoStepper** est un outil Java puissant conçu pour générer automatiquement des fichiers StepMania (`.sm`) à partir de vos fichiers audio (MP3, WAV). Il analyse le rythme, détecte les battements et crée des flèches adaptées à la musique.
 
