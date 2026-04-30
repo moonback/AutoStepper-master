@@ -27,16 +27,16 @@ public class AutoStepper {
 
     public static final int KICKS = 0, ENERGY = 1, SNARE = 2, HAT = 3;
 
-    // collected song data
+    // données collectées de la chanson
     private final TFloatArrayList[] manyTimes = new TFloatArrayList[4];
     private final TFloatArrayList[] fewTimes = new TFloatArrayList[4];
 
-    // for minim
+    // pour minim
     public String sketchPath(String fileName) {
         return fileName;
     }
 
-    // for minim
+    // pour minim
     public InputStream createInput(String fileName) {
         try {
             return new FileInputStream(new File(fileName));
@@ -45,7 +45,7 @@ public class AutoStepper {
         }
     }
 
-    // argument parser
+    // analyseur d'arguments
     public static String getArg(String[] args, String argname, String def) {
         try {
             for (String s : args) {
@@ -59,7 +59,7 @@ public class AutoStepper {
         return def;
     }
 
-    // argument parser
+    // analyseur d'arguments
     public static boolean hasArg(String[] args, String argname) {
         for (String s : args) {
             if (s.toLowerCase().equals(argname))
@@ -75,8 +75,8 @@ public class AutoStepper {
         System.out.println("Début du programme...");
         if (hasArg(args, "help") || hasArg(args, "h") || hasArg(args, "?") || hasArg(args, "-help")
                 || hasArg(args, "-?") || hasArg(args, "-h")) {
-            System.out.println("Argument usage (all fields are optional):\n"
-                    + "input=<file or dir> output=<songs dir> duration=<seconds to process, default: 90> tap=<true/false> tapsync=<tap time offset, default: -0.11> hard=<true/false> updatesm=<true/false>");
+            System.out.println("Usage des arguments (tous les champs sont optionnels) :\n"
+                    + "input=<fichier ou dossier> output=<dossier des chansons> duration=<secondes à traiter, par défaut : 90> tap=<true/false> tapsync=<décalage de temps du tap, par défaut : -0.11> hard=<true/false> updatesm=<true/false>");
             return;
         }
         MAX_BPM = Float.parseFloat(getArg(args, "maxbpm", "170f"));
@@ -95,7 +95,7 @@ public class AutoStepper {
         if (inputFile.isFile()) {
             myAS.analyzeUsingAudioRecordingStream(inputFile, duration, outputDir);
         } else if (inputFile.isDirectory()) {
-            System.out.println("Processing directory: " + inputFile.getAbsolutePath());
+            System.out.println("Traitement du répertoire : " + inputFile.getAbsolutePath());
             File[] allfiles = inputFile.listFiles();
             for (File f : allfiles) {
                 String extCheck = f.getName().toLowerCase();
@@ -103,11 +103,11 @@ public class AutoStepper {
                         (extCheck.endsWith(".mp3") || extCheck.endsWith(".wav"))) {
                     myAS.analyzeUsingAudioRecordingStream(f, duration, outputDir);
                 } else {
-                    System.out.println("Skipping unsupported file: " + f.getName());
+                    System.out.println("Fichier non supporté ignoré : " + f.getName());
                 }
             }
         } else {
-            System.out.println("Couldn't find any input files.");
+            System.out.println("Impossible de trouver des fichiers d'entrée.");
         }
     }
 
@@ -145,7 +145,7 @@ public class AutoStepper {
         ArrayList<TFloatArrayList> values = new ArrayList<>();
         for (int i = 0; i < arr.size(); i++) {
             float val = arr.get(i);
-            // check for this value in our current lists
+            // vérifier cette valeur dans nos listes actuelles
             boolean notFound = true;
             for (int j = 0; j < values.size(); j++) {
                 TFloatArrayList tal = values.get(j);
@@ -160,14 +160,14 @@ public class AutoStepper {
                 if (notFound == false)
                     break;
             }
-            // if it wasn't found, start a new list
+            // si elle n'a pas été trouvée, commencer une nouvelle liste
             if (notFound) {
                 TFloatArrayList newList = new TFloatArrayList();
                 newList.add(val);
                 values.add(newList);
             }
         }
-        // get the longest list
+        // obtenir la liste la plus longue
         int longest = 0;
         TFloatArrayList longestList = null;
         for (int i = 0; i < values.size(); i++) {
@@ -181,8 +181,8 @@ public class AutoStepper {
         if (longestList == null)
             return -1f;
         if (longestList.size() == 1 && values.size() > 1) {
-            // one value only, no average needed.. but what to pick?
-            // just pick the smallest one... or integer, if we want that instead
+            // une seule valeur, pas besoin de moyenne... mais quoi choisir ?
+            // on prend juste la plus petite... ou l'entier, si on veut cela à la place
             if (closestToInteger) {
                 float closestIntDiff = 1f;
                 float result = arr.getQuick(0);
@@ -203,7 +203,7 @@ public class AutoStepper {
                 return smallest;
             }
         }
-        // calculate average
+        // calculer la moyenne
         float avg = 0f;
         for (int i = 0; i < longestList.size(); i++) {
             avg += longestList.get(i);
@@ -234,32 +234,31 @@ public class AutoStepper {
     public static float tappedOffset;
 
     public int getTappedBPM(String filename) {
-        // now we load the whole song so we don't have to worry about streaming a
-        // variable mp3 with timing inaccuracies
-        System.out.println("Loading whole song for tapping...");
+        // chargement de la chanson complète pour éviter les imprécisions de streaming
+        System.out.println("Chargement de la chanson complète pour le tapage...");
         AudioSample fullSong = minim.loadSample(filename);
         System.out.println(
-                "\n********************************************************************\n\nPress [ENTER] to start song, then press [ENTER] to tap to the beat.\nIt will complete after 30 entries.\nDon't worry about hitting the first beat, just start anytime.\n\n********************************************************************");
+                "\n********************************************************************\n\nAppuyez sur [ENTRÉE] pour démarrer la chanson, puis sur [ENTRÉE] pour taper en rythme.\nLe processus se terminera après 30 pressions.\nNe vous inquiétez pas de rater le premier battement, commencez n'importe quand.\n\n********************************************************************");
         TFloatArrayList positions = new TFloatArrayList();
         Scanner in = new Scanner(System.in);
         try {
             in.nextLine();
         } catch (Exception e) {
         }
-        // get the most accurate start time as possible
+        // obtenir le temps de début le plus précis possible
         long nano = System.nanoTime();
         fullSong.trigger();
         nano = (System.nanoTime() + nano) / 2;
         try {
             for (int i = 0; i < 30; i++) {
                 in.nextLine();
-                // get two playtime values & average them together for accuracy
+                // obtenir deux valeurs de temps de jeu et en faire la moyenne pour la précision
                 long now = System.nanoTime();
-                // calculate the time difference
-                // we note a consistent 0.11 second delay in input to song here
+                // calculer la différence de temps
+                // on note un délai constant de 0,11 seconde pour l'entrée ici
                 double time = (double) ((now - nano) / 1000000000.0) + TAPSYNC;
                 positions.add((float) time);
-                System.out.println("#" + positions.size() + "/30: " + time + "s");
+                System.out.println("#" + positions.size() + "/30 : " + time + "s");
             }
         } catch (Exception e) {
         }
@@ -275,13 +274,13 @@ public class AutoStepper {
     void analyzeUsingAudioRecordingStream(File filename, float seconds, String outputDir) {
         int fftSize = 512;
 
-        System.out.println("\n[--- Processing " + seconds + "s of " + filename.getName() + " ---]");
+        System.out.println("\n[--- Traitement de " + seconds + "s de " + filename.getName() + " ---]");
         AudioRecordingStream stream = minim.loadFileStream(filename.getAbsolutePath(), fftSize, false);
 
-        // tell it to "play" so we can read from it.
+        // on dit de "jouer" pour pouvoir lire le flux.
         stream.play();
 
-        // create the fft/beatdetect objects we'll use for analysis
+        // création des objets fft/beatdetect pour l'analyse
         BeatDetect manybd = new BeatDetect(BeatDetect.FREQ_ENERGY, fftSize, stream.getFormat().getSampleRate());
         BeatDetect fewbd = new BeatDetect(BeatDetect.FREQ_ENERGY, fftSize, stream.getFormat().getSampleRate());
         BeatDetect manybde = new BeatDetect(BeatDetect.SOUND_ENERGY, fftSize, stream.getFormat().getSampleRate());
@@ -293,19 +292,18 @@ public class AutoStepper {
 
         FFT fft = new FFT(fftSize, stream.getFormat().getSampleRate());
 
-        // create the buffer we use for reading from the stream
+        // création du tampon pour lire le flux
         MultiChannelBuffer buffer = new MultiChannelBuffer(fftSize, stream.getFormat().getChannels());
 
-        // figure out how many samples are in the stream so we can allocate the correct
-        // number of spectra
+        // calcul du nombre d'échantillons dans le flux
         float songTime = stream.getMillisecondLength() / 1000f;
         int totalSamples = (int) (songTime * stream.getFormat().getSampleRate());
         float timePerSample = fftSize / stream.getFormat().getSampleRate();
 
-        // now we'll analyze the samples in chunks
+        // analyse des échantillons par blocs
         int totalChunks = (totalSamples / fftSize) + 1;
 
-        System.out.println("Performing Beat Detection...");
+        System.out.println("Détection des battements en cours...");
         for (int i = 0; i < fewTimes.length; i++) {
             if (fewTimes[i] == null)
                 fewTimes[i] = new TFloatArrayList();
@@ -322,13 +320,13 @@ public class AutoStepper {
             stream.read(buffer);
             float[] data = buffer.getChannel(0);
             float time = chunkIdx * timePerSample;
-            // now analyze the left channel
+            // analyse du canal gauche
             manybd.detect(data, time);
             manybde.detect(data, time);
             fewbd.detect(data, time);
             fewbde.detect(data, time);
             fft.forward(data);
-            // fft processing
+            // traitement fft
             float avg = fft.calcAvg(300f, 3000f);
             float max = 0f;
             for (int b = lowFreq; b <= highFreq; b++) {
@@ -342,7 +340,7 @@ public class AutoStepper {
                 largestAvg = avg;
             MidFFTAmount.add(avg);
             MidFFTMaxes.add(max);
-            // store basic percussion times
+            // stockage des temps de percussion de base
             if (manybd.isKick())
                 manyTimes[KICKS].add(time);
             if (manybd.isHat())
@@ -360,8 +358,8 @@ public class AutoStepper {
             if (fewbde.isOnset())
                 fewTimes[ENERGY].add(time);
         }
-        System.out.println("Loudest midrange average to normalize to 1: " + largestAvg);
-        System.out.println("Loudest midrange maximum to normalize to 1: " + largestMax);
+        System.out.println("Moyenne des médiums la plus forte pour normaliser à 1 : " + largestAvg);
+        System.out.println("Maximum des médiums le plus fort pour normaliser à 1 : " + largestMax);
         float scaleBy = 1f / largestAvg;
         float scaleMaxBy = 1f / largestMax;
         for (int i = 0; i < MidFFTAmount.size(); i++) {
@@ -369,9 +367,8 @@ public class AutoStepper {
             MidFFTMaxes.replace(i, MidFFTMaxes.get(i) * scaleMaxBy);
         }
 
-        // calculate differences between percussive elements,
-        // then find the most common differences among all
-        // use this to calculate BPM
+        // calculer les différences entre les éléments percussifs,
+        // puis trouver les différences les plus communes pour calculer le BPM
         TFloatArrayList common = new TFloatArrayList();
         float doubleSpeed = 60f / (MAX_BPM * 2f);
         for (int i = 0; i < fewTimes.length; i++) {
@@ -394,26 +391,26 @@ public class AutoStepper {
                             int off = line.indexOf("#OFFSET:") + 8;
                             int end = line.indexOf(";", off);
                             startTime = Float.parseFloat(line.substring(off, end));
-                            System.out.println("StartTime from SM file: " + startTime);
+                            System.out.println("Heure de début du fichier SM : " + startTime);
                         }
                         if (line.contains("#BPMS:")) {
                             int off = line.indexOf("#BPMS:");
                             off = line.indexOf("=", off) + 1;
                             int end = line.indexOf(";", off);
                             BPM = Float.parseFloat(line.substring(off, end));
-                            System.out.println("BPM from SM file: " + BPM);
+                            System.out.println("BPM du fichier SM : " + BPM);
                         }
                     }
                     timePerBeat = 60f / BPM;
                 } catch (Exception e) {
                 }
             } else {
-                System.out.println("Couldn't find SM to update: " + smfile.getAbsolutePath());
+                System.out.println("Fichier SM à mettre à jour introuvable : " + smfile.getAbsolutePath());
             }
         }
         if (BPM == 0f) {
             if (common.isEmpty()) {
-                System.out.println("[--- FAILED: COULDN'T CALCULATE BPM ---]");
+                System.out.println("[--- ÉCHEC : IMPOSSIBLE DE CALCULER LE BPM ---]");
                 return;
             }
             BPM = Math.round(getMostCommon(common, 0.5f, true));
@@ -423,20 +420,20 @@ public class AutoStepper {
                 startTimes.add(getBestOffset(timePerBeat, fewTimes[i], 0.01f));
                 startTimes.add(getBestOffset(timePerBeat, manyTimes[i], 0.01f));
             }
-            // give extra weight to fewKicks
+            // donner un poids supplémentaire aux Kicks (fewKicks)
             float kickStartTime = getBestOffset(timePerBeat, fewTimes[KICKS], 0.01f);
             startTimes.add(kickStartTime);
             startTimes.add(kickStartTime);
             startTime = -getMostCommon(startTimes, 0.02f, false);
         }
-        System.out.println("Time per beat: " + timePerBeat + ", BPM: " + BPM);
-        System.out.println("Start Time: " + startTime);
+        System.out.println("Temps par battement : " + timePerBeat + ", BPM : " + BPM);
+        System.out.println("Heure de début : " + startTime);
 
-        // start making the SM
+        // génération du fichier SM
         BufferedWriter smfile = SMGenerator.GenerateSM(BPM, startTime, filename, outputDir);
 
         if (HARDMODE)
-            System.out.println("Hard mode enabled! Extra steps for you! :-O");
+            System.out.println("Mode Difficile activé ! Des flèches en plus pour vous ! :-O");
 
         SMGenerator.AddNotes(smfile, SMGenerator.Beginner, StepGenerator.GenerateNotes(1, HARDMODE ? 2 : 4, manyTimes,
                 fewTimes, MidFFTAmount, MidFFTMaxes, timePerSample, timePerBeat, startTime, seconds, false));
@@ -450,6 +447,6 @@ public class AutoStepper {
                 fewTimes, MidFFTAmount, MidFFTMaxes, timePerSample, timePerBeat, startTime, seconds, true));
         SMGenerator.Complete(smfile);
 
-        System.out.println("[--------- SUCCESS ----------]");
+        System.out.println("[--------- SUCCÈS ----------]");
     }
 }

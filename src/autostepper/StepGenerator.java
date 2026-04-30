@@ -37,7 +37,7 @@ public class StepGenerator {
         return -1;
     }
     
-    // make a note line, with lots of checks, balances & filtering
+    // crée une ligne de notes, avec de nombreuses vérifications, équilibrages et filtrages
     static float[] holding = new float[4];
     static float lastJumpTime;
     static ArrayList<char[]> AllNoteLines = new ArrayList<>();
@@ -62,7 +62,7 @@ public class StepGenerator {
                     holds++; currentHoldCount--;
                 }
             }
-            // if we still have holds, subtract counter until 0
+            // s'il y a encore des holds, soustraire le compteur jusqu'à 0
             for(int i=0;i<4;i++) {
                 if( holding[i] > 0f ) {
                     holding[i] -= 1f;
@@ -92,28 +92,28 @@ public class StepGenerator {
             AllNoteLines.add(ret);
             return;
         }
-        if( steps > 1 && time - lastJumpTime < (mines ? 2f : 4f) ) steps = 1; // don't spam jumps
+        if( steps > 1 && time - lastJumpTime < (mines ? 2f : 4f) ) steps = 1; // ne pas spammer les sauts
         if( steps >= 2 ) {
-             // no hands
+             // pas de mains (hands)
             steps = 2;
             lastJumpTime = time;
         }
-        // can't hold or step more than 2
+        // on ne peut pas tenir (hold) ou sauter plus de 2
         int currentHoldCount = getHoldCount(); 
         if( holds + currentHoldCount > 2 ) holds = 2 - currentHoldCount;
         if( steps + currentHoldCount > 2 ) steps = 2 - currentHoldCount;
-        // if we have had a run of 3 holds, don't make a new hold to prevent player from spinning
+        // si on a eu une série de 3 holds, on n'en crée pas de nouveau pour éviter que le joueur ne tourne sur lui-même
         if( holdRun >= 2 && holds > 0 ) holds = 0;
-        // are we stopping holds?
+        // est-ce qu'on arrête les holds ?
         char[] noteLine = getHoldStops(currentHoldCount, time, holds);
-        // if we are making a step, but just coming off a hold, move that hold end up to give proper
-        // time to make move to new step
+        // si on fait un pas, mais qu'on vient de finir un hold, on déplace cette fin de hold vers le haut pour laisser le temps
+        // nécessaire au déplacement vers la nouvelle note
         if( steps > 0 && lastLine.contains("3") ) {
             int currentIndex = AllNoteLines.size()-1;
             char[] currentLine = AllNoteLines.get(currentIndex);
             for(int i=0;i<4;i++) {
                 if( currentLine[i] == '3' ) {
-                    // got a hold stop here, lets move it up
+                    // on a un arrêt de hold ici, déplaçons-le vers le haut
                     currentLine[i] = '0';
                     char[] nextLineUp = AllNoteLines.get(currentIndex-1);
                     if( nextLineUp[i] == '2' ) {
@@ -122,7 +122,7 @@ public class StepGenerator {
                 }
             }
         }
-        // ok, make the steps
+        // ok, on crée les pas (steps)
         String completeLine;
         char[] orig = new char[4];
         orig[0] = noteLine[0];
@@ -152,7 +152,7 @@ public class StepGenerator {
                     stepcount--;
                 }
             }
-            // put in a mine?
+            // mettre une mine ?
             if( mines ) {
                 mineCount--;
                 if( mineCount <= 0 ) {
@@ -219,7 +219,7 @@ public class StepGenerator {
                                        TFloatArrayList FFTAverages, TFloatArrayList FFTMaxes, float timePerFFT,
                                        float timePerBeat, float timeOffset, float totalTime,
                                        boolean allowMines) {      
-        // reset variables
+        // réinitialisation des variables
         AllNoteLines.clear();
         lastJumpTime = -10f;
         holdRun = 0;
@@ -251,12 +251,12 @@ public class StepGenerator {
                 }
                 if( nearKick && (nearSnare || nearEnergy) && timeIndex % 2 == 0 &&
                     steps > 0 && lastLine.contains("1") == false && lastLine.contains("2") == false && lastLine.contains("3") == false ) {
-                     // only jump in high areas, on solid beats (not half beats)
+                     // on ne saute que dans les zones intenses, sur les battements complets (pas de demi-temps)
                     steps = 2;
                 }
-                // wait, are we skipping new steps?
-                // if we just got done from a jump, don't have a half beat
-                // if we are holding something, don't do half-beat steps
+                // attendez, est-ce qu'on ignore de nouvelles flèches ?
+                // si on vient de finir un saut, pas de demi-temps
+                // si on maintient quelque chose, pas de flèches sur demi-temps
                 if( timeIndex % 2 == 1 &&
                     (skipChance > 1 && timeIndex % 2 == 1 && rand.nextInt(skipChance) > 0 || getHoldCount() > 0) ||
                     t - lastJumpTime < timePerBeat ) {
@@ -270,7 +270,7 @@ public class StepGenerator {
             totalStepsMade += steps;
             timeIndex++;
         }
-        // ok, put together AllNotes
+        // ok, on assemble AllNotes
         String AllNotes = "";
         commaSeperator = commaSeperatorReset;
         for(int i=0;i<AllNoteLines.size();i++) {
@@ -281,7 +281,7 @@ public class StepGenerator {
                 commaSeperator = commaSeperatorReset;
             }
         }
-        // fill out the last empties
+        // remplir les derniers vides
         while( commaSeperator > 0 ) {
             AllNotes += "3333";
             commaSeperator--;
@@ -290,7 +290,7 @@ public class StepGenerator {
         int _stepCount = AllNotes.length() - AllNotes.replace("1", "").length();
         int _holdCount = AllNotes.length() - AllNotes.replace("2", "").length();
         int _mineCount = AllNotes.length() - AllNotes.replace("M", "").length();
-        System.out.println("Steps: " + _stepCount + ", Holds: " + _holdCount + ", Mines: " + _mineCount);
+        System.out.println("Flèches : " + _stepCount + ", Holds : " + _holdCount + ", Mines : " + _mineCount);
         return AllNotes;
     }
     

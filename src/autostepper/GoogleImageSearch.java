@@ -21,7 +21,7 @@ public class GoogleImageSearch {
             Document doc1 = Jsoup.connect(googleUrl).userAgent(ua).timeout(8 * 1000).get();
             Elements elems = doc1.select("[data-src]");
             if( elems.isEmpty() ) {
-                System.out.println("Couldn't find any images for: " + question);
+                System.out.println("Aucune image trouvée pour : " + question);
                 return;
             }
             Element media = elems.first();

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package autostepper;
 
 import java.io.BufferedWriter;
@@ -22,12 +17,12 @@ public class SMGenerator {
 
     private static String Header = "#TITLE:$TITLE;\n" +
             "#SUBTITLE:;\n" +
-            "#ARTIST:AutoStepper by Maysson.D;\n" +
+            "#ARTIST:AutoStepper par Maysson.D;\n" +
             "#TITLETRANSLIT:;\n" +
             "#SUBTITLETRANSLIT:;\n" +
             "#ARTISTTRANSLIT:;\n" +
             "#GENRE:;\n" +
-            "#CREDIT:AutoStepper by Maysson.D;\n" +
+            "#CREDIT:AutoStepper par Maysson.D;\n" +
             "#BANNER:$BGIMAGE;\n" +
             "#BACKGROUND:$BGIMAGE;\n" +
             "#LYRICSPATH:;\n" +
@@ -79,8 +74,8 @@ public class SMGenerator {
                 os.write(buffer, 0, length);
             }
         } finally {
-            is.close();
-            os.close();
+            if (is != null) is.close();
+            if (os != null) os.close();
         }
     }
 
@@ -112,21 +107,21 @@ public class SMGenerator {
         File dir = new File(outputdir, filename + "_dir/");
         dir.mkdirs();
         File smfile = new File(dir, filename + ".sm");
-        // get image for sm
+        // obtenir une image pour le sm
         File imgFile = new File(dir, filename + "_img.png");
         String imgFileName = "";
         if (imgFile.exists() == false) {
-            System.out.println("Attempting to get image for background & banner...");
+            System.out.println("Tentative de récupération d'une image pour le fond et la bannière...");
             GoogleImageSearch.FindAndSaveImage(
                     songname.replace("(", " ").replace(")", " ").replace("www.", " ").replace("_", " ")
                             .replace("-", " ").replace("&", " ").replace("[", " ").replace("]", " "),
                     imgFile.getAbsolutePath());
         }
         if (imgFile.exists()) {
-            System.out.println("Got an image file!");
+            System.out.println("Image récupérée !");
             imgFileName = imgFile.getName();
         } else
-            System.out.println("No image file to use :(");
+            System.out.println("Aucune image à utiliser :(");
         try {
             smfile.delete();
             copyFileUsingStream(songfile, new File(dir, filename));
