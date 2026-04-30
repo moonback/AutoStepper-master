@@ -9,6 +9,9 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
+import java.awt.dnd.*;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -38,14 +41,52 @@ public class AutoStepperGUI extends JFrame {
     private JButton btnStart;
     private JLabel lblBannerPreview, lblBgPreview;
     private JProgressBar progressBar;
+    private JTable songTable;
+    private SongTableModel songTableModel;
     private Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
+
+    // --- Data Model for per-song customization ---
+    private static class SongEntry {
+        File file;
+        String customBanner = "";
+        String customBG = "";
+        SongEntry(File f) { this.file = f; }
+        @Override public String toString() { return file.getName(); }
+    }
+
+    private class SongTableModel extends javax.swing.table.AbstractTableModel {
+        private java.util.ArrayList<SongEntry> entries = new java.util.ArrayList<>();
+        private String[] columnNames = {"Musique", "Bannière", "Fond / Vidéo"};
+
+        public void setEntries(java.util.List<File> files) {
+            entries.clear();
+            for (File f : files) entries.add(new SongEntry(f));
+            fireTableDataChanged();
+        }
+
+        public SongEntry getEntry(int row) { return (row >= 0 && row < entries.size()) ? entries.get(row) : null; }
+        public java.util.List<SongEntry> getEntries() { return entries; }
+
+        @Override public int getRowCount() { return entries.size(); }
+        @Override public int getColumnCount() { return columnNames.length; }
+        @Override public String getColumnName(int col) { return columnNames[col]; }
+        @Override public Object getValueAt(int row, int col) {
+            SongEntry e = entries.get(row);
+            switch(col) {
+                case 0: return e.file.getName();
+                case 1: return e.customBanner.isEmpty() ? "(Auto)" : new File(e.customBanner).getName();
+                case 2: return e.customBG.isEmpty() ? "(Auto)" : new File(e.customBG).getName();
+                default: return "";
+            }
+        }
+    }
 
     public AutoStepperGUI() {
         setTitle("AutoStepper v1.7");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(780, 720);
+        setSize(860, 800);
         setLocationRelativeTo(null);
-        setMinimumSize(new Dimension(680, 600));
+        setMinimumSize(new Dimension(760, 680));
 
         // Panel racine
         JPanel root = new JPanel(new BorderLayout(0, 0));
@@ -58,15 +99,28 @@ public class AutoStepperGUI extends JFrame {
         header.setOpaque(false);
         header.setBorder(new EmptyBorder(0, 0, 14, 0));
 
-        JLabel lblTitle = new JLabel("AutoStepper");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        JLabel lblTitle = new JLabel("AutoStepper") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(ACCENT);
+                int[] px = {0, 12, 8, 18, 6, 10, 0};
+                int[] py = {10, 10, 18, 18, 30, 30, 20};
+                g2.fillPolygon(px, py, 7);
+                g2.dispose();
+                g.translate(24, 0);
+                super.paintComponent(g);
+            }
+        };
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 32));
         lblTitle.setForeground(TEXT_PRIMARY);
         header.add(lblTitle, BorderLayout.WEST);
 
-        JLabel lblSub = new JLabel("v1.7  —  par Maysson.D");
-        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        JLabel lblSub = new JLabel("v1.7  —  par Maysson.D  ");
+        lblSub.setFont(new Font("Segoe UI", Font.ITALIC, 14));
         lblSub.setForeground(TEXT_SECONDARY);
-        lblSub.setBorder(new EmptyBorder(10, 0, 0, 0));
+        lblSub.setBorder(new EmptyBorder(12, 0, 0, 0));
         header.add(lblSub, BorderLayout.EAST);
 
         root.add(header, BorderLayout.NORTH);
@@ -81,6 +135,10 @@ public class AutoStepperGUI extends JFrame {
 
         // --- Carte : Fichiers ---
         configArea.add(buildFilesCard());
+        configArea.add(Box.createRigidArea(new Dimension(0, 10)));
+
+        // --- Carte : Liste des musiques (Nouveau) ---
+        configArea.add(buildSongListCard());
         configArea.add(Box.createRigidArea(new Dimension(0, 10)));
 
         // --- Carte : Visuel ---
@@ -103,9 +161,28 @@ public class AutoStepperGUI extends JFrame {
         logArea.setCaretColor(LOG_GREEN);
 
         JScrollPane scrollPane = new JScrollPane(logArea);
-        scrollPane.setBorder(createCardBorder("Journal d'exécution"));
+        scrollPane.setBorder(null);
         scrollPane.getViewport().setBackground(new Color(12, 12, 18));
-        center.add(scrollPane, BorderLayout.CENTER);
+
+        JPanel logWrapper = createCard("Journal d'exécution");
+        logWrapper.setLayout(new BorderLayout());
+        logWrapper.add(scrollPane, BorderLayout.CENTER);
+
+        JButton btnClearLog = new JButton("Nettoyer");
+        btnClearLog.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        btnClearLog.setForeground(TEXT_SECONDARY);
+        btnClearLog.setBackground(BG_CARD);
+        btnClearLog.setBorder(BorderFactory.createEmptyBorder(2, 8, 2, 8));
+        btnClearLog.setFocusPainted(false);
+        btnClearLog.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnClearLog.addActionListener(e -> logArea.setText(""));
+
+        JPanel logHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        logHeader.setOpaque(false);
+        logHeader.add(btnClearLog);
+        logWrapper.add(logHeader, BorderLayout.NORTH);
+
+        center.add(logWrapper, BorderLayout.CENTER);
 
         root.add(center, BorderLayout.CENTER);
 
@@ -122,9 +199,10 @@ public class AutoStepperGUI extends JFrame {
         progressBar.setForeground(ACCENT_GREEN);
         bottomPanel.add(progressBar, BorderLayout.NORTH);
 
-        btnStart = createGradientButton("DÉMARRER LA GÉNÉRATION", ACCENT_GREEN, ACCENT_GREEN_H);
-        btnStart.setPreferredSize(new Dimension(0, 52));
-        btnStart.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btnStart = createGradientButton("DÉMARRER LA GÉNÉRATION DES STEPS", ACCENT_GREEN, ACCENT_GREEN_H);
+        btnStart.setPreferredSize(new Dimension(0, 56));
+        btnStart.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        btnStart.setToolTipText("Lance l'analyse et la création des fichiers .sm");
         bottomPanel.add(btnStart, BorderLayout.CENTER);
 
         root.add(bottomPanel, BorderLayout.SOUTH);
@@ -155,7 +233,9 @@ public class AutoStepperGUI extends JFrame {
         JButton btnOut = createBrowseBtn("btnBrowseOutput");
 
         txtInput = styledField(".");
+        txtInput.setToolTipText("Glissez-déposez vos fichiers audio ici");
         txtOutput = styledField(".");
+        txtOutput.setToolTipText("Dossier où sera créé le pack StepMania");
 
         addRow(card, g, 0, "Musique / Dossier", txtInput, btnIn);
         addRow(card, g, 1, "Dossier de sortie",  txtOutput, btnOut);
@@ -180,48 +260,228 @@ public class AutoStepperGUI extends JFrame {
             }
         });
 
+        // Auto-scan on path change
+        txtInput.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { scanInput(); }
+            public void removeUpdate(DocumentEvent e) { scanInput(); }
+            public void changedUpdate(DocumentEvent e) { scanInput(); }
+        });
+
         return card;
     }
 
-    private JPanel buildVisualCard() {
-        JPanel card = createCard("Personnalisation Visuelle");
-        card.setLayout(new GridBagLayout());
-        GridBagConstraints g = defaultGbc();
+    private JPanel buildSongListCard() {
+        JPanel card = createCard("\uD83C\uDFB5 Musiques Détectées (Sélectionnez pour personnaliser)");
+        card.setLayout(new BorderLayout(0, 8));
+        card.setPreferredSize(new Dimension(0, 180));
 
-        JButton btnBI = createBrowseBtn("btnBrowseImage");
-        JButton btnBB = createBrowseBtn("btnBrowseBackground");
+        songTableModel = new SongTableModel();
+        songTable = new JTable(songTableModel);
+        songTable.setBackground(BG_INPUT);
+        songTable.setForeground(TEXT_PRIMARY);
+        songTable.setGridColor(BORDER_COLOR);
+        songTable.setSelectionBackground(ACCENT);
+        songTable.setSelectionForeground(Color.WHITE);
+        songTable.setRowHeight(25);
+        songTable.getTableHeader().setBackground(BG_CARD);
+        songTable.getTableHeader().setForeground(ACCENT);
+        songTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        
+        songTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) updateVisualCardFromSelection();
+        });
 
-        // Banner row
-        g.gridx = 0; g.gridy = 0; g.weightx = 0;
-        card.add(styledLabel("Bannière"), g);
-        txtCustomImage = styledField("");
-        g.gridx = 1; g.weightx = 1.0;
-        card.add(txtCustomImage, g);
-        g.gridx = 2; g.weightx = 0;
-        card.add(btnBI, g);
+        JScrollPane scroll = new JScrollPane(songTable);
+        scroll.getViewport().setBackground(BG_INPUT);
+        scroll.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
+        card.add(scroll, BorderLayout.CENTER);
 
-        lblBannerPreview = createPreviewLabel();
-        g.gridx = 3;
-        card.add(lblBannerPreview, g);
-
-        // Background row
-        g.gridx = 0; g.gridy = 1; g.weightx = 0;
-        card.add(styledLabel("Fond / Vidéo"), g);
-        txtCustomBackground = styledField("");
-        g.gridx = 1; g.weightx = 1.0;
-        card.add(txtCustomBackground, g);
-        g.gridx = 2; g.weightx = 0;
-        card.add(btnBB, g);
-
-        lblBgPreview = createPreviewLabel();
-        g.gridx = 3;
-        card.add(lblBgPreview, g);
-
-        // Wire browse buttons
-        btnBI.addActionListener(e -> browseFile(txtCustomImage));
-        btnBB.addActionListener(e -> browseFile(txtCustomBackground));
+        JButton btnScan = createAccentButton("Actualiser la liste");
+        btnScan.addActionListener(e -> scanInput());
+        JPanel bp = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        bp.setOpaque(false);
+        bp.add(btnScan);
+        card.add(bp, BorderLayout.SOUTH);
 
         return card;
+    }
+
+    private void scanInput() {
+        String path = txtInput.getText().trim();
+        if (path.isEmpty()) return;
+        File f = new File(path);
+        java.util.ArrayList<File> found = new java.util.ArrayList<>();
+        if (f.isFile() && (path.toLowerCase().endsWith(".mp3") || path.toLowerCase().endsWith(".wav"))) {
+            found.add(f);
+        } else if (f.isDirectory()) {
+            File[] files = f.listFiles();
+            if (files != null) {
+                for (File sub : files) {
+                    if (sub.isFile() && (sub.getName().toLowerCase().endsWith(".mp3") || sub.getName().toLowerCase().endsWith(".wav"))) {
+                        found.add(sub);
+                    }
+                }
+            }
+        }
+        songTableModel.setEntries(found);
+        if (found.size() > 0) songTable.setRowSelectionInterval(0, 0);
+    }
+
+    private void updateVisualCardFromSelection() {
+        int row = songTable.getSelectedRow();
+        SongEntry entry = songTableModel.getEntry(row);
+        if (entry != null) {
+            txtCustomImage.setText(entry.customBanner);
+            txtCustomBackground.setText(entry.customBG);
+            updateDropZonePreview(entry.customBanner, lblBannerPreview, "Bannière Spécifique");
+            updateDropZonePreview(entry.customBG, lblBgPreview, "Fond Spécifique");
+        }
+    }
+
+    private JPanel buildVisualCard() {
+        JPanel card = createCard("\uD83D\uDDBC\uFE0F Personnalisation Visuelle — Glisser-Déposer");
+        card.setLayout(new GridLayout(1, 2, 14, 0));
+
+        txtCustomImage = styledField("");
+        txtCustomBackground = styledField("");
+        lblBannerPreview = new JLabel();
+        lblBgPreview = new JLabel();
+
+        JPanel dropBanner = createDropZone("\uD83D\uDDBC\uFE0F Bannière", "Glissez une image ici", txtCustomImage, lblBannerPreview);
+        JPanel dropBg = createDropZone("\uD83C\uDFA8 Fond / Vidéo", "Glissez une image ou vidéo ici", txtCustomBackground, lblBgPreview);
+
+        card.add(dropBanner);
+        card.add(dropBg);
+        return card;
+    }
+
+    private class DropZonePanel extends JPanel {
+        private boolean hovering = false;
+        private String title, hint;
+        private JTextField field;
+        private JLabel preview;
+
+        public DropZonePanel(String title, String hint, JTextField field, JLabel preview) {
+            this.title = title;
+            this.hint = hint;
+            this.field = field;
+            this.preview = preview;
+            setLayout(new BorderLayout(0, 6));
+            setOpaque(false);
+            setBorder(new EmptyBorder(12, 12, 12, 12));
+
+            JLabel lblTitle = new JLabel(title);
+            lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            lblTitle.setForeground(TEXT_PRIMARY);
+            lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
+
+            preview.setPreferredSize(new Dimension(140, 100));
+            preview.setHorizontalAlignment(SwingConstants.CENTER);
+            preview.setVerticalAlignment(SwingConstants.CENTER);
+            preview.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+            preview.setForeground(TEXT_SECONDARY);
+            preview.setText(hint);
+
+            JButton btnBrowse = createAccentButton("Parcourir...");
+            btnBrowse.addActionListener(e -> {
+                browseFile(field);
+                updateDropZonePreview(field.getText(), preview, hint);
+            });
+
+            JPanel bottom = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+            bottom.setOpaque(false);
+            bottom.add(btnBrowse);
+
+            add(lblTitle, BorderLayout.NORTH);
+            add(preview, BorderLayout.CENTER);
+            add(bottom, BorderLayout.SOUTH);
+
+            setTransferHandler(new TransferHandler() {
+                public boolean canImport(TransferSupport s) {
+                    boolean ok = s.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
+                    setHovering(ok);
+                    return ok;
+                }
+                public boolean importData(TransferSupport s) {
+                    try {
+                        List<File> files = (List<File>) s.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                        if (files != null && !files.isEmpty()) {
+                            String path = files.get(0).getAbsolutePath();
+                            field.setText(path);
+                            updateDropZonePreview(path, preview, hint);
+                            validateInputs();
+                        }
+                        setHovering(false);
+                        return true;
+                    } catch (Exception e) { return false; }
+                }
+            });
+
+            field.getDocument().addDocumentListener(new DocumentListener() {
+                public void insertUpdate(DocumentEvent e) { updateEntryFromField(); updateDropZonePreview(field.getText(), preview, hint); }
+                public void removeUpdate(DocumentEvent e) { updateEntryFromField(); updateDropZonePreview(field.getText(), preview, hint); }
+                public void changedUpdate(DocumentEvent e) { updateEntryFromField(); updateDropZonePreview(field.getText(), preview, hint); }
+            });
+        }
+
+        public void setHovering(boolean h) {
+            this.hovering = h;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(hovering ? new Color(99, 102, 241, 25) : BG_INPUT);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+            float[] dash = {6f, 4f};
+            g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10f, dash, 0f));
+            g2.setColor(hovering ? ACCENT : BORDER_COLOR);
+            g2.drawRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 14, 14);
+            g2.dispose();
+        }
+    }
+
+    private JPanel createDropZone(String title, String hint, JTextField linkedField, JLabel previewLabel) {
+        return new DropZonePanel(title, hint, linkedField, previewLabel);
+    }
+
+    private void updateEntryFromField() {
+        if (songTable == null || songTableModel == null) return;
+        int row = songTable.getSelectedRow();
+        SongEntry entry = songTableModel.getEntry(row);
+        if (entry != null) {
+            entry.customBanner = txtCustomImage.getText();
+            entry.customBG = txtCustomBackground.getText();
+            songTableModel.fireTableRowsUpdated(row, row);
+        }
+    }
+
+    private void updateDropZonePreview(String path, JLabel label, String defaultHint) {
+        if (path == null || path.trim().isEmpty() || !new File(path).exists()) {
+            label.setIcon(null);
+            label.setText(defaultHint);
+            label.setForeground(TEXT_SECONDARY);
+            return;
+        }
+        if (path.toLowerCase().endsWith(".mp4")) {
+            label.setIcon(null);
+            label.setText("\u25B6 VIDEO");
+            label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            label.setForeground(ACCENT_GREEN);
+            return;
+        }
+        try {
+            ImageIcon icon = new ImageIcon(path);
+            Image img = icon.getImage().getScaledInstance(130, 90, Image.SCALE_SMOOTH);
+            label.setIcon(new ImageIcon(img));
+            label.setText("");
+        } catch (Exception e) {
+            label.setIcon(null);
+            label.setText("Aperçu indisponible");
+            label.setForeground(TEXT_SECONDARY);
+        }
     }
 
     private JPanel buildOptionsCard() {
@@ -289,13 +549,11 @@ public class AutoStepperGUI extends JFrame {
 
     private JLabel createPreviewLabel() {
         JLabel lbl = new JLabel("—");
-        lbl.setPreferredSize(new Dimension(80, 28));
+        lbl.setPreferredSize(new Dimension(140, 100));
         lbl.setHorizontalAlignment(SwingConstants.CENTER);
         lbl.setFont(new Font("Segoe UI", Font.ITALIC, 11));
         lbl.setForeground(TEXT_SECONDARY);
-        lbl.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
-        lbl.setOpaque(true);
-        lbl.setBackground(BG_INPUT);
+        lbl.setOpaque(false);
         return lbl;
     }
 
@@ -438,43 +696,9 @@ public class AutoStepperGUI extends JFrame {
     // ============================================================
 
     private void setupImagePreviews() {
-        DocumentListener pl = new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { updateAllPreviews(); }
-            public void removeUpdate(DocumentEvent e) { updateAllPreviews(); }
-            public void changedUpdate(DocumentEvent e) { updateAllPreviews(); }
-        };
-        txtCustomImage.getDocument().addDocumentListener(pl);
-        txtCustomBackground.getDocument().addDocumentListener(pl);
-        updateAllPreviews();
-    }
-
-    private void updateAllPreviews() {
-        updateImagePreview(txtCustomImage.getText(), lblBannerPreview, 80, 28);
-        updateImagePreview(txtCustomBackground.getText(), lblBgPreview, 80, 28);
-    }
-
-    private void updateImagePreview(String path, JLabel label, int w, int h) {
-        if (path == null || path.trim().isEmpty() || !new File(path).exists()) {
-            label.setIcon(null);
-            label.setText("—");
-            return;
-        }
-        if (path.toLowerCase().endsWith(".mp4")) {
-            label.setIcon(null);
-            label.setText("VIDEO");
-            label.setForeground(ACCENT_GREEN);
-            return;
-        }
-        try {
-            ImageIcon icon = new ImageIcon(path);
-            Image img = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
-            label.setIcon(new ImageIcon(img));
-            label.setText("");
-            label.setForeground(TEXT_SECONDARY);
-        } catch (Exception e) {
-            label.setIcon(null);
-            label.setText("Err");
-        }
+        // Previews are now managed inside createDropZone listeners
+        updateDropZonePreview(txtCustomImage.getText(), lblBannerPreview, "Glissez une image ici");
+        updateDropZonePreview(txtCustomBackground.getText(), lblBgPreview, "Glissez une image ou vidéo ici");
     }
 
     // ============================================================
@@ -492,9 +716,20 @@ public class AutoStepperGUI extends JFrame {
     private void enableDragAndDrop(JTextField textField) {
         textField.setTransferHandler(new TransferHandler() {
             public boolean canImport(TransferSupport s) {
-                return s.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
+                boolean ok = s.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
+                if (ok) textField.setBorder(BorderFactory.createLineBorder(ACCENT, 2));
+                return ok;
+            }
+            @Override
+            protected void exportDone(JComponent source, Transferable data, int action) {
+                textField.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(BORDER_COLOR),
+                    new EmptyBorder(5, 8, 5, 8)));
             }
             public boolean importData(TransferSupport s) {
+                textField.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(BORDER_COLOR),
+                    new EmptyBorder(5, 8, 5, 8)));
                 if (!canImport(s)) return false;
                 try {
                     Transferable t = s.getTransferable();
@@ -509,6 +744,16 @@ public class AutoStepperGUI extends JFrame {
                     }
                     return true;
                 } catch (Exception e) { return false; }
+            }
+        });
+        
+        // Reset border on drag exit is tricky with TransferHandler alone, adding listener
+        textField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseExited(MouseEvent e) {
+                textField.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(BORDER_COLOR),
+                    new EmptyBorder(5, 8, 5, 8)));
             }
         });
     }
@@ -602,36 +847,28 @@ public class AutoStepperGUI extends JFrame {
                 }
 
                 AutoStepper.HARDMODE = chkHardMode.isSelected();
-                AutoStepper.customImagePath = txtCustomImage.getText().trim().isEmpty() ? null : txtCustomImage.getText();
-                AutoStepper.customBackgroundPath = txtCustomBackground.getText().trim().isEmpty() ? null : txtCustomBackground.getText();
                 float duration = ((Integer) spinDuration.getValue()).floatValue();
-                String inputPath = txtInput.getText();
                 String outputPath = txtOutput.getText();
-
                 if (!outputPath.endsWith("/") && !outputPath.endsWith("\\")) {
                     outputPath += "/";
                 }
 
-                File inputFile = new File(inputPath);
-                if (inputFile.exists()) {
-                    if (inputFile.isFile()) {
-                        AutoStepper.loadMetadata(inputFile.getAbsolutePath());
-                        AutoStepper.myAS.analyzeUsingAudioRecordingStream(inputFile, duration, outputPath);
-                    } else {
-                        System.out.println("Traitement du répertoire : " + inputFile.getAbsolutePath());
-                        File[] allfiles = inputFile.listFiles();
-                        if (allfiles != null) {
-                            for (File f : allfiles) {
-                                String ext = f.getName().toLowerCase();
-                                if (f.isFile() && (ext.endsWith(".mp3") || ext.endsWith(".wav"))) {
-                                    AutoStepper.loadMetadata(f.getAbsolutePath());
-                                    AutoStepper.myAS.analyzeUsingAudioRecordingStream(f, duration, outputPath);
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    System.out.println("Erreur : Le fichier ou dossier d'entrée n'existe pas.");
+                if (songTableModel.getEntries().isEmpty()) {
+                    System.out.println("Erreur : Aucune musique détectée dans la liste.");
+                    return;
+                }
+
+                for (SongEntry entry : songTableModel.getEntries()) {
+                    File f = entry.file;
+                    AutoStepper.customImagePath = entry.customBanner.trim().isEmpty() ? null : entry.customBanner;
+                    AutoStepper.customBackgroundPath = entry.customBG.trim().isEmpty() ? null : entry.customBG;
+                    
+                    System.out.println("\n--- Analyse de : " + f.getName() + " ---");
+                    if (AutoStepper.customImagePath != null) System.out.println(" > Bannière forcée : " + new File(AutoStepper.customImagePath).getName());
+                    if (AutoStepper.customBackgroundPath != null) System.out.println(" > Fond forcé : " + new File(AutoStepper.customBackgroundPath).getName());
+                    
+                    AutoStepper.loadMetadata(f.getAbsolutePath());
+                    AutoStepper.myAS.analyzeUsingAudioRecordingStream(f, duration, outputPath);
                 }
             } catch (Exception ex) {
                 System.out.println("\n[ERREUR] " + ex.getMessage());
