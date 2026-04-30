@@ -5,11 +5,12 @@
 ---
 
 ## ✨ Fonctionnalités
-*   **Interface Graphique (Nouveau)** : Plus besoin de taper des commandes, utilisez la fenêtre conviviale !
+*   **Interface Graphique (Nouveau)** : Plus besoin de taper des commandes, utilisez la fenêtre conviviale avec son nouveau design structuré !
 *   **Génération complète** : Crée tous les niveaux de difficulté (Beginner à Challenge).
 *   **Analyse avancée** : Support des notes maintenues (holds), des sauts (jumps) et des mines.
 *   **Artwork Automatique** : Recherche automatique de bannières et fonds sur Google Images.
-*   **Image Personnalisée (Nouveau)** : Possibilité d'uploader votre propre image pour le fond.
+*   **Images Personnalisées (Nouveau)** : Possibilité d'uploader votre propre **Bannière** et votre propre **Arrière-plan** séparément.
+*   **Métadonnées Avancées (Nouveau)** : Ajoutez manuellement le Titre Translit, l'Artiste Translit, le Genre, etc., via le bouton d'Options Avancées.
 *   **Mode Tap Manuel** : Calculez le BPM vous-même en tapant sur votre clavier si l'analyse automatique échoue.
 *   **Multi-fichiers** : Traitez une chanson seule ou tout un dossier d'un coup.
 
@@ -18,11 +19,11 @@
 ## 🚀 Utilisation
 
 ### 🖥️ Mode Interface Graphique (Recommandé)
-Double-cliquez simplement sur le fichier **`AutoStepper.jar`**.
-1. Sélectionnez votre fichier ou dossier de musique.
-2. Choisissez le dossier où vous voulez enregistrer les résultats.
-3. (Optionnel) Sélectionnez une image personnalisée pour la bannière.
-4. Cliquez sur **DÉMARRER LA GÉNÉRATION**.
+Double-cliquez simplement sur le fichier **`AutoStepper.jar`**. L'interface est divisée en sections claires :
+1. **📁 Fichiers et Dossiers** : Sélectionnez votre fichier/dossier de musique et le dossier de sortie.
+2. **🖼️ Personnalisation Visuelle** : (Optionnel) Uploadez une image pour la bannière et une image pour le fond du jeu.
+3. **⚙️ Options de Génération** : Choisissez la durée, le mode difficile, ou ouvrez les **Options Avancées** pour renseigner les balises détaillées du fichier SM (Translit, Genre...).
+4. Cliquez sur **DÉMARRER LA GÉNÉRATION DES STEPS** et suivez la progression dans le journal d'exécution.
 
 ### ⌨️ Mode Ligne de commande
 Pour les utilisateurs avancés, vous pouvez toujours utiliser les arguments :
