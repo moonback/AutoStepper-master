@@ -358,13 +358,19 @@ public class AutoStepper {
             MidFFTMaxes.replace(i, MidFFTMaxes.get(i) * scaleMaxBy);
         }
 
-        // calculer les différences entre les éléments percussifs,
-        // puis trouver les différences les plus communes pour calculer le BPM
+        // calculer les différences entre les éléments percussifs avec pondération (IA Smart BPM)
         TFloatArrayList common = new TFloatArrayList();
         float doubleSpeed = 60f / (MAX_BPM * 2f);
+        
         for (int i = 0; i < fewTimes.length; i++) {
-            AddCommonBPMs(common, fewTimes[i], doubleSpeed, timePerSample * 1.5f);
-            AddCommonBPMs(common, manyTimes[i], doubleSpeed, timePerSample * 1.5f);
+            int weight = 1;
+            if (i == KICKS) weight = 4;   // Les basses sont les plus fiables pour le BPM
+            if (i == ENERGY) weight = 2;  // L'énergie globale est un bon indicateur secondaire
+            
+            for (int w = 0; w < weight; w++) {
+                AddCommonBPMs(common, fewTimes[i], doubleSpeed, timePerSample * 1.5f);
+                AddCommonBPMs(common, manyTimes[i], doubleSpeed, timePerSample * 1.5f);
+            }
         }
         float BPM = 0f, startTime = 0f, timePerBeat = 0f;
         if (UPDATESM) {
@@ -401,6 +407,14 @@ public class AutoStepper {
                 return;
             }
             BPM = Math.round(getMostCommon(common, 0.5f, true));
+            
+            // Calcul de la confiance (BPM Confidence)
+            int matches = 0;
+            for (int i = 0; i < common.size(); i++) {
+                if (Math.abs(common.get(i) - BPM) < 1.0f) matches++;
+            }
+            float confidence = (float) matches / common.size() * 100f;
+
             timePerBeat = 60f / BPM;
             TFloatArrayList startTimes = new TFloatArrayList();
             for (int i = 0; i < fewTimes.length; i++) {
@@ -412,6 +426,8 @@ public class AutoStepper {
             startTimes.add(kickStartTime);
             startTimes.add(kickStartTime);
             startTime = -getMostCommon(startTimes, 0.02f, false);
+            
+            System.out.println(" > Indice de Confiance BPM : " + String.format("%.1f", confidence) + "%");
         }
         System.out.println("Temps par battement : " + timePerBeat + ", BPM : " + BPM);
         System.out.println("Heure de début : " + startTime);
