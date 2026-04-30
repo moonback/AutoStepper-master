@@ -28,14 +28,4 @@ Il est préférable de laisser AutoStepper traiter un grand nombre de musiques, 
 
 Vous pouvez également utiliser le résultat comme base pour éditer et perfectionner les chansons, AutoStepper se chargeant de la plus grande partie du travail fastidieux.
 
-Je précise qu'il est optimisé pour une utilisation sur tapis (pad), et non pour le clavier (la difficulté n'est pas assez élevée, par exemple).
 
-** LICENCE : Licence MIT modifiée pour restreindre l'utilisation commerciale et exiger l'attribution **
-
-Copyright (c) 2018 Maysson.D
-
-L'autorisation est accordée par la présente, gratuitement, à toute personne obtenant une copie de ce logiciel et des fichiers de documentation associés (le "Logiciel"), de l'utiliser sous réserve de restrictions d'utilisation commerciale et d'une obligation d'attribution à Maysson.D. Vous êtes libre d'utiliser, copier, modifier, fusionner, publier, distribuer ce Logiciel pour des usages privés, personnels et non commerciaux tant que Maysson.D est crédité.
-
-L'avis de copyright ci-dessus et cet avis d'autorisation doivent être inclus dans toutes les copies ou parties substantielles du Logiciel.
-
-LE LOGICIEL EST FOURNI "EN L'ÉTAT", SANS GARANTIE D'AUCUNE SORTE, EXPRESSE OU IMPLICITE, Y COMPRIS, MAIS SANS S'Y LIMITER, LES GARANTIES DE QUALITÉ MARCHANDE, D'ADÉQUATION À UN USAGE PARTICULIER ET D'ABSENCE DE CONTREFAÇON. EN AUCUN CAS LES AUTEURS OU LES TITULAIRES DU DROIT D'AUTEUR NE POURRONT ÊTRE TENUS RESPONSABLES DE TOUTE RÉCLAMATION, DOMMAGE OU AUTRE RESPONSABILITÉ, QUE CE SOIT DANS LE CADRE D'UN CONTRAT, D'UN DÉLIT OU AUTRE, DÉCOULANT DE, OU EN RELATION AVEC LE LOGICIEL OU L'UTILISATION OU D'AUTRES RAPPORTS DANS LE LOGICIEL.
