@@ -99,21 +99,24 @@ public class SMGenerator {
         return new File(dir, filename + ".sm");
     }
 
-    public static BufferedWriter GenerateSM(float BPM, float startTime, File songfile, String outputdir, String bpmString) {
+    public static BufferedWriter GenerateSM(float BPM, float startTime, File songfile, String outputdir, String bpmString, AutoStepper.Metadata md, String customImagePath, String customBackgroundPath) {
         String filename = songfile.getName();
         String songname = filename.replace(".mp3", "").replace(".wav", "").replace(".MP3", "").replace(".WAV", "");
         
+        String sTitle = md != null ? md.songTitle : "";
+        String sArtist = md != null ? md.songArtist : "";
+
         // Tentative de découpage Artiste - Titre si les tags sont vides
-        if (AutoStepper.songTitle.isEmpty() || AutoStepper.songArtist.isEmpty()) {
+        if (sTitle.isEmpty() || sArtist.isEmpty()) {
             if (songname.contains(" - ")) {
                 String[] parts = songname.split(" - ", 2);
-                if (AutoStepper.songArtist.isEmpty()) AutoStepper.songArtist = parts[0].trim();
-                if (AutoStepper.songTitle.isEmpty()) AutoStepper.songTitle = parts[1].trim();
+                if (sArtist.isEmpty()) sArtist = parts[0].trim();
+                if (sTitle.isEmpty()) sTitle = parts[1].trim();
             }
         }
 
-        String finalTitle = (AutoStepper.songTitle != null && !AutoStepper.songTitle.isEmpty()) ? AutoStepper.songTitle : songname;
-        String finalArtist = (AutoStepper.songArtist != null && !AutoStepper.songArtist.isEmpty()) ? AutoStepper.songArtist : "AutoStepper par Maysson.D";
+        String finalTitle = (sTitle != null && !sTitle.isEmpty()) ? sTitle : songname;
+        String finalArtist = (sArtist != null && !sArtist.isEmpty()) ? sArtist : "AutoStepper par Maysson.D";
         
         File dir = new File(outputdir, filename + "_dir/");
         dir.mkdirs();
@@ -121,10 +124,10 @@ public class SMGenerator {
         // Gestion de la bannière
         File bannerFile = new File(dir, filename + "_banner.png");
         String bannerFileName = "";
-        if (AutoStepper.customImagePath != null && new File(AutoStepper.customImagePath).exists()) {
-            System.out.println("Utilisation de la bannière personnalisée : " + AutoStepper.customImagePath);
+        if (customImagePath != null && new File(customImagePath).exists()) {
+            System.out.println("Utilisation de la bannière personnalisée : " + customImagePath);
             try {
-                copyFileUsingStream(new File(AutoStepper.customImagePath), bannerFile);
+                copyFileUsingStream(new File(customImagePath), bannerFile);
                 bannerFileName = bannerFile.getName();
             } catch (IOException e) {
                 System.out.println("Erreur lors de la copie de la bannière : " + e.getMessage());
@@ -134,10 +137,10 @@ public class SMGenerator {
         // Gestion de l'arrière-plan
         File bgFile = new File(dir, filename + "_bg.png");
         String bgFileName = "";
-        if (AutoStepper.customBackgroundPath != null && new File(AutoStepper.customBackgroundPath).exists()) {
-            System.out.println("Utilisation de l'arrière-plan personnalisé : " + AutoStepper.customBackgroundPath);
+        if (customBackgroundPath != null && new File(customBackgroundPath).exists()) {
+            System.out.println("Utilisation de l'arrière-plan personnalisé : " + customBackgroundPath);
             try {
-                copyFileUsingStream(new File(AutoStepper.customBackgroundPath), bgFile);
+                copyFileUsingStream(new File(customBackgroundPath), bgFile);
                 bgFileName = bgFile.getName();
             } catch (IOException e) {
                 System.out.println("Erreur lors de la copie de l'arrière-plan : " + e.getMessage());

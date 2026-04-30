@@ -22,33 +22,37 @@ public class AutoStepper {
     public static double TAPSYNC = -0.11;
     public static boolean HARDMODE = false, UPDATESM = false;
     public static boolean SMART_MINES = true, DETECT_SILENCE = true, VARIABLE_BPM = true;
-    public static String customImagePath = null;
-    public static String customBackgroundPath = null;
-    public static String songTitle = "";
-    public static String songArtist = "";
     public static String titleTranslit = "";
     public static String subTitleTranslit = "";
     public static String artistTranslit = "";
     public static String genre = "";
 
+    public static class Metadata {
+        public String songTitle = "";
+        public String songArtist = "";
+    }
+
     public static Minim minim;
     public static AutoStepper myAS = new AutoStepper();
 
-    public static void loadMetadata(String filename) {
-        songTitle = "";
-        songArtist = "";
-        genre = "";
+    public static Metadata loadMetadata(String filename) {
+        Metadata md = new Metadata();
         if (minim == null) minim = new Minim(myAS);
-        AudioSample sample = minim.loadSample(filename, 512);
-        if (sample != null) {
-            AudioMetaData meta = sample.getMetaData();
-            if (meta != null) {
-                if (!meta.title().trim().isEmpty()) songTitle = meta.title();
-                if (!meta.author().trim().isEmpty()) songArtist = meta.author();
-                if (!meta.genre().trim().isEmpty()) genre = meta.genre();
+        try {
+            AudioSample sample = minim.loadSample(filename, 512);
+            if (sample != null) {
+                AudioMetaData meta = sample.getMetaData();
+                if (meta != null) {
+                    if (!meta.title().trim().isEmpty()) md.songTitle = meta.title();
+                    if (!meta.author().trim().isEmpty()) md.songArtist = meta.author();
+                    if (!meta.genre().trim().isEmpty() && genre.isEmpty()) genre = meta.genre();
+                }
+                sample.close();
             }
-            sample.close();
+        } catch (Exception e) {
+            System.out.println("Erreur de métadonnées: " + e.getMessage());
         }
+        return md;
     }
 
     public static final int KICKS = 0, ENERGY = 1, SNARE = 2, HAT = 3;
@@ -121,7 +125,7 @@ public class AutoStepper {
         UPDATESM = getArg(args, "updatesm", "false").equals("true");
         File inputFile = new File(input);
         if (inputFile.isFile()) {
-            myAS.analyzeUsingAudioRecordingStream(inputFile, duration, outputDir);
+            myAS.analyzeUsingAudioRecordingStream(inputFile, duration, outputDir, loadMetadata(inputFile.getAbsolutePath()), null, null);
         } else if (inputFile.isDirectory()) {
             System.out.println("Traitement du répertoire : " + inputFile.getAbsolutePath());
             File[] allfiles = inputFile.listFiles();
@@ -129,7 +133,7 @@ public class AutoStepper {
                 String extCheck = f.getName().toLowerCase();
                 if (f.isFile() &&
                         (extCheck.endsWith(".mp3") || extCheck.endsWith(".wav"))) {
-                    myAS.analyzeUsingAudioRecordingStream(f, duration, outputDir);
+                    myAS.analyzeUsingAudioRecordingStream(f, duration, outputDir, loadMetadata(f.getAbsolutePath()), null, null);
                 } else {
                     System.out.println("Fichier non supporté ignoré : " + f.getName());
                 }
@@ -259,7 +263,7 @@ public class AutoStepper {
             common.add(commonBPM);
     }
 
-    void analyzeUsingAudioRecordingStream(File filename, float seconds, String outputDir) {
+    void analyzeUsingAudioRecordingStream(File filename, float seconds, String outputDir, Metadata md, String customImagePath, String customBackgroundPath) {
         int fftSize = 512;
 
         System.out.println("\n[--- Traitement de " + seconds + "s de " + filename.getName() + " ---]");
@@ -536,7 +540,7 @@ public class AutoStepper {
         }
 
         // génération du fichier SM
-        BufferedWriter smfile = SMGenerator.GenerateSM(BPM, startTime, filename, outputDir, bpmString);
+        BufferedWriter smfile = SMGenerator.GenerateSM(BPM, startTime, filename, outputDir, bpmString, md, customImagePath, customBackgroundPath);
 
         if (HARDMODE)
             System.out.println("Mode Difficile activé ! Des flèches en plus pour vous ! :-O");
