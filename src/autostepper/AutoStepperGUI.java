@@ -38,7 +38,7 @@ public class AutoStepperGUI extends JFrame {
     // --- Composants ---
     private JTextField txtInput, txtOutput, txtCustomImage, txtCustomBackground;
     private JSpinner spinDuration;
-    private JCheckBox chkHardMode;
+    private JCheckBox chkHardMode, chkSmartMines, chkDetectSilence, chkVariableBPM;
     private JTextArea logArea;
     private JButton btnStart;
     private JLabel lblBannerPreview, lblBgPreview;
@@ -708,15 +708,20 @@ public class AutoStepperGUI extends JFrame {
     }
 
     private JPanel buildOptionsCard() {
-        JPanel card = createCard("Options de Génération");
+        JPanel card = createCard("Options de Génération & Algorithme");
         card.setLayout(new FlowLayout(FlowLayout.LEFT, 16, 8));
 
-        chkHardMode = new JCheckBox("Mode Difficile");
-        chkHardMode.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        chkHardMode.setForeground(TEXT_PRIMARY);
-        chkHardMode.setBackground(BG_CARD);
-        chkHardMode.setFocusPainted(false);
+        chkHardMode = createStyledCheckBox("Mode Difficile");
         card.add(chkHardMode);
+
+        chkSmartMines = createStyledCheckBox("Mines Intelligentes (Énergie)");
+        card.add(chkSmartMines);
+
+        chkDetectSilence = createStyledCheckBox("Couper les Silences");
+        card.add(chkDetectSilence);
+
+        chkVariableBPM = createStyledCheckBox("BPM Variable (Expérimental)");
+        card.add(chkVariableBPM);
 
         card.add(styledLabel("Durée (0 = Tout) :"));
         spinDuration = new JSpinner(new SpinnerNumberModel(0, 0, 3600, 10));
@@ -724,11 +729,16 @@ public class AutoStepperGUI extends JFrame {
         spinDuration.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         card.add(spinDuration);
 
-        JButton btnAdv = createAccentButton("Options Avancées");
-        btnAdv.addActionListener(e -> showAdvancedOptionsDialog());
-        card.add(btnAdv);
-
         return card;
+    }
+    
+    private JCheckBox createStyledCheckBox(String text) {
+        JCheckBox chk = new JCheckBox(text);
+        chk.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        chk.setForeground(TEXT_PRIMARY);
+        chk.setBackground(BG_CARD);
+        chk.setFocusPainted(false);
+        return chk;
     }
 
     // ============================================================
@@ -884,6 +894,9 @@ public class AutoStepperGUI extends JFrame {
         txtCustomImage.setText(prefs.get("customImage", ""));
         txtCustomBackground.setText(prefs.get("customBackground", ""));
         chkHardMode.setSelected(prefs.getBoolean("hardMode", false));
+        chkSmartMines.setSelected(prefs.getBoolean("smartMines", true));
+        chkDetectSilence.setSelected(prefs.getBoolean("detectSilence", true));
+        chkVariableBPM.setSelected(prefs.getBoolean("variableBPM", true));
         spinDuration.setValue(prefs.getInt("duration", 0));
     }
 
@@ -893,6 +906,9 @@ public class AutoStepperGUI extends JFrame {
         prefs.put("customImage", txtCustomImage.getText());
         prefs.put("customBackground", txtCustomBackground.getText());
         prefs.putBoolean("hardMode", chkHardMode.isSelected());
+        prefs.putBoolean("smartMines", chkSmartMines.isSelected());
+        prefs.putBoolean("detectSilence", chkDetectSilence.isSelected());
+        prefs.putBoolean("variableBPM", chkVariableBPM.isSelected());
         prefs.putInt("duration", (Integer) spinDuration.getValue());
     }
 
@@ -1063,6 +1079,9 @@ public class AutoStepperGUI extends JFrame {
         txtCustomImage.setText("");
         txtCustomBackground.setText("");
         chkHardMode.setSelected(false);
+        chkSmartMines.setSelected(true);
+        chkDetectSilence.setSelected(true);
+        chkVariableBPM.setSelected(true);
         spinDuration.setValue(0);
         logArea.setText("");
         progressBar.setValue(0);
@@ -1091,6 +1110,10 @@ public class AutoStepperGUI extends JFrame {
                 }
 
                 AutoStepper.HARDMODE = chkHardMode.isSelected();
+                AutoStepper.SMART_MINES = chkSmartMines.isSelected();
+                AutoStepper.DETECT_SILENCE = chkDetectSilence.isSelected();
+                AutoStepper.VARIABLE_BPM = chkVariableBPM.isSelected();
+                
                 float duration = ((Integer) spinDuration.getValue()).floatValue();
                 String outputPath = txtOutput.getText();
                 if (!outputPath.endsWith("/") && !outputPath.endsWith("\\")) {

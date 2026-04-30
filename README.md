@@ -5,10 +5,15 @@
 ---
 
 ## ✨ Fonctionnalités
+*   **Nouvel Algorithme de Génération (v1.8)** :
+    *   **BPM Variable** : Détection avancée des changements de tempo au fil du morceau.
+    *   **Mines Intelligentes** : Placement dynamique basé sur l'énergie audio (FFT).
+    *   **Détection des Silences** : Ignore intelligemment les zones vides au début et à la fin.
 *   **Interface Moderne (Dark Mode) (Nouveau)** : Design sombre et élégant pour une meilleure lisibilité.
 *   **Glisser-Déposer (Drag & Drop)** : Glissez directement vos musiques et images dans l'application.
 *   **Extraction de Métadonnées (ID3) (Nouveau)** : AutoStepper lit automatiquement le titre, l'artiste et le genre de vos fichiers audio !
 *   **Pack de Chanson Complet (Nouveau)** : Crée automatiquement un dossier prêt pour StepMania contenant le fichier `.sm`, la musique et les images.
+*   **Prévisualisation Audio (Nouveau)** : Lecteur intégré avec visualisation dynamique de l'onde sonore en temps réel.
 *   **Mémoire des Préférences** : L'application se souvient de vos derniers réglages.
 *   **Génération complète** : Crée tous les niveaux de difficulté (Beginner à Challenge).
 *   **Analyse avancée** : Support des notes maintenues (holds), des sauts (jumps) et des mines.
@@ -32,9 +37,10 @@ Double-cliquez simplement sur le fichier **`AutoStepper.jar`**. L'interface est 
    * Glissez-déposez vos images dans les zones dédiées (Bannière et Fond). 
    * **Nouveau** : Chaque morceau peut avoir son propre pack d'images ! Les zones s'illuminent lors du survol d'un fichier.
 4. **⚙️ Options & Contrôles** : 
-   * Réglez la difficulté et la durée.
+   * Activez/désactivez les fonctions intelligentes (BPM Variable, Mines via Énergie, Coupure des Silences).
+   * Réglez la difficulté (Hard Mode) et la durée d'analyse.
    * Utilisez le bouton **Réinitialiser Tout** pour vider tous les champs et la liste.
-   * Nettoyez le journal d'exécution avec le bouton dédié.
+   * Suivez l'avancement dans le journal d'exécution intégré au bas de la fenêtre.
 5. Cliquez sur **DÉMARRER LA GÉNÉRATION DES STEPS** pour lancer le traitement par lot.
 
 ### ⌨️ Mode Ligne de commande

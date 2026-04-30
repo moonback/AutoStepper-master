@@ -153,7 +153,7 @@ public class StepGenerator {
                 }
             }
             // mettre une mine ? IA basée sur l'énergie audio
-            if( mines && FFTMaxes != null ) {
+            if( mines && FFTMaxes != null && AutoStepper.SMART_MINES ) {
                 boolean smartMine = shouldPlaceMine(time, FFTMaxes, timePerFFT);
                 if( smartMine ) {
                     // Placer la mine sur une position vide aléatoire

@@ -21,6 +21,7 @@ public class AutoStepper {
     public static float MAX_BPM = 170f, MIN_BPM = 70f, BPM_SENSITIVITY = 0.05f, STARTSYNC = 0.0f;
     public static double TAPSYNC = -0.11;
     public static boolean HARDMODE = false, UPDATESM = false;
+    public static boolean SMART_MINES = true, DETECT_SILENCE = true, VARIABLE_BPM = true;
     public static String customImagePath = null;
     public static String customBackgroundPath = null;
     public static String songTitle = "";
@@ -367,14 +368,17 @@ public class AutoStepper {
         }
         
         // --- Appliquer la détection des silences ---
-        if (firstSoundTime > 0.5f) {
-            System.out.println("\n[\uD83D\uDD07 SILENCE DÉTECTÉ]");
-            System.out.println(" > Silence début : " + String.format("%.2f", firstSoundTime) + "s");
-        }
-        if (lastSoundTime < songTime - 1.0f) {
-            float silenceEnd = songTime - lastSoundTime;
-            System.out.println(" > Silence fin : " + String.format("%.2f", silenceEnd) + "s");
-            seconds = Math.min(seconds, lastSoundTime + 0.5f);
+        if (DETECT_SILENCE) {
+            if (firstSoundTime > 0.5f) {
+                System.out.println("\n[\uD83D\uDD07 SILENCE DÉTECTÉ]");
+                System.out.println(" > Silence début : " + String.format("%.2f", firstSoundTime) + "s");
+                // TODO: we could offset the startTime based on firstSoundTime if needed.
+            }
+            if (lastSoundTime > 0f && lastSoundTime < songTime - 1.0f) {
+                float silenceEnd = songTime - lastSoundTime;
+                System.out.println(" > Silence fin : " + String.format("%.2f", silenceEnd) + "s");
+                seconds = Math.min(seconds, lastSoundTime + 0.5f);
+            }
         }
         System.out.println("Moyenne des médiums la plus forte pour normaliser à 1 : " + largestAvg);
         System.out.println("Maximum des médiums le plus fort pour normaliser à 1 : " + largestMax);
@@ -482,35 +486,37 @@ public class AutoStepper {
         boolean hasVariableBPM = false;
         String bpmString = "0.000000=" + BPM;
         
-        for (int seg = 0; seg < NUM_SEGMENTS; seg++) {
-            float segStart = seg * segmentDuration;
-            float segEnd = segStart + segmentDuration;
-            TFloatArrayList segKicks = new TFloatArrayList();
-            for (int i = 0; i < fewTimes[KICKS].size(); i++) {
-                float t = fewTimes[KICKS].get(i);
-                if (t >= segStart && t < segEnd) segKicks.add(t);
-            }
-            if (segKicks.size() > 4) {
-                TFloatArrayList diffs = calculateDifferences(segKicks, doubleSpeed);
-                if (diffs.size() > 2) {
-                    float localBPM = 60f / getMostCommon(diffs, timePerSample * 1.5f, true);
-                    if (localBPM > MAX_BPM) localBPM *= 0.5f;
-                    if (localBPM < MIN_BPM) localBPM *= 2f;
-                    segmentBPMs.add(Math.round(localBPM));
+        if (VARIABLE_BPM) {
+            for (int seg = 0; seg < NUM_SEGMENTS; seg++) {
+                float segStart = seg * segmentDuration;
+                float segEnd = segStart + segmentDuration;
+                TFloatArrayList segKicks = new TFloatArrayList();
+                for (int i = 0; i < fewTimes[KICKS].size(); i++) {
+                    float t = fewTimes[KICKS].get(i);
+                    if (t >= segStart && t < segEnd) segKicks.add(t);
+                }
+                if (segKicks.size() > 4) {
+                    TFloatArrayList diffs = calculateDifferences(segKicks, doubleSpeed);
+                    if (diffs.size() > 2) {
+                        float localBPM = 60f / getMostCommon(diffs, timePerSample * 1.5f, true);
+                        if (localBPM > MAX_BPM) localBPM *= 0.5f;
+                        if (localBPM < MIN_BPM) localBPM *= 2f;
+                        segmentBPMs.add(Math.round(localBPM));
+                    } else {
+                        segmentBPMs.add(BPM);
+                    }
                 } else {
                     segmentBPMs.add(BPM);
                 }
-            } else {
-                segmentBPMs.add(BPM);
             }
-        }
-        
-        // Vérifier s'il y a des variations significatives
-        for (int i = 0; i < segmentBPMs.size(); i++) {
-            float diff = Math.abs(segmentBPMs.get(i) - BPM) / BPM;
-            if (diff > 0.05f) {
-                hasVariableBPM = true;
-                break;
+            
+            // Vérifier s'il y a des variations significatives
+            for (int i = 0; i < segmentBPMs.size(); i++) {
+                float diff = Math.abs(segmentBPMs.get(i) - BPM) / BPM;
+                if (diff > 0.05f) {
+                    hasVariableBPM = true;
+                    break;
+                }
             }
         }
         
