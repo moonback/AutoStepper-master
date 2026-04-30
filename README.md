@@ -33,16 +33,35 @@ Double-cliquez simplement sur le fichier **`AutoStepper.jar`**. L'interface est 
 4. Cliquez sur **DÉMARRER LA GÉNÉRATION DES STEPS** et suivez la progression dans le journal d'exécution. Le bouton sera grisé tant qu'aucune musique n'est renseignée.
 
 ### ⌨️ Mode Ligne de commande
-Pour les utilisateurs avancés, vous pouvez toujours utiliser les arguments :
+Pour les utilisateurs avancés, vous pouvez utiliser l'application via un terminal. Voici quelques exemples courants :
+
+**1. Analyse simple d'une chanson :**
 ```bash
-java -jar AutoStepper.jar input="ma_musique.mp3" duration=90 hard=true output="./ma_sortie/"
+java -jar AutoStepper.jar input="ma_musique.mp3"
 ```
+
+**2. Traiter tout un dossier et envoyer vers StepMania :**
+```bash
+java -jar AutoStepper.jar input="./Musique/" output="C:/Games/StepMania/Songs/MonPack/"
+```
+
+**3. Mode difficile sur toute la durée du morceau :**
+```bash
+java -jar AutoStepper.jar input="techno.mp3" duration=0 hard=true
+```
+
+**4. Mettre à jour les steps d'un fichier .sm existant :**
+```bash
+java -jar AutoStepper.jar input="remix.mp3" updatesm=true
+```
+
 **Arguments disponibles :**
-- `input` : Fichier ou dossier source.
-- `output` : Dossier de destination.
-- `duration` : Secondes à traiter (défaut : 90s).
-- `hard` : `true` pour ajouter plus de flèches.
-- `tap` : `true` pour synchroniser manuellement le rythme.
+- `input` : Fichier audio ou dossier contenant des musiques.
+- `output` : Dossier où le pack de chanson sera créé.
+- `duration` : Secondes à traiter (utilisez `0` pour toute la chanson).
+- `hard` : `true` pour générer des patterns plus complexes (plus de flèches).
+- `updatesm` : `true` pour mettre à jour un fichier `.sm` existant au lieu d'en créer un nouveau.
+- `maxbpm` : Limite haute pour la détection du BPM (défaut : 170).
 
 ---
 
