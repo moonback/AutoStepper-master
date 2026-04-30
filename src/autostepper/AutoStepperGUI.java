@@ -33,31 +33,42 @@ public class AutoStepperGUI extends JFrame {
         setSize(700, 650);
         setLocationRelativeTo(null);
 
-        // Panel principal avec marges
+        // Panel principal avec thème sombre
         JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
+        mainPanel.setBackground(new Color(30, 30, 35));
         mainPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
         setContentPane(mainPanel);
 
         // Titre de l'application
         JLabel lblTitle = new JLabel("AutoStepper - Générateur StepMania", SwingConstants.CENTER);
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
-        lblTitle.setForeground(new Color(50, 50, 50));
+        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 26));
+        lblTitle.setForeground(new Color(220, 220, 230));
         mainPanel.add(lblTitle, BorderLayout.NORTH);
 
         // Panel de configuration central
         JPanel configPanel = new JPanel();
+        configPanel.setBackground(new Color(30, 30, 35));
         configPanel.setLayout(new BoxLayout(configPanel, BoxLayout.Y_AXIS));
+        
+        // Style commun pour les labels et bordures
+        Color textColor = new Color(200, 200, 210);
+        Color panelBg = new Color(45, 45, 50);
         
         // --- SECTION 1 : Fichiers et Dossiers ---
         JPanel filesPanel = new JPanel(new GridBagLayout());
-        filesPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "📁 Fichiers et Dossiers"));
+        filesPanel.setBackground(panelBg);
+        filesPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(70, 70, 80)), "📁 Fichiers et Dossiers", 0, 0, null, textColor));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(8, 10, 8, 10);
         
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
-        filesPanel.add(new JLabel("Musique / Dossier :"), gbc);
+        JLabel lblIn = new JLabel("Musique / Dossier :"); lblIn.setForeground(textColor);
+        filesPanel.add(lblIn, gbc);
         txtInput = new JTextField(".");
+        txtInput.setBackground(new Color(60, 60, 65));
+        txtInput.setForeground(Color.WHITE);
+        txtInput.setCaretColor(Color.WHITE);
         gbc.gridx = 1; gbc.weightx = 1.0;
         filesPanel.add(txtInput, gbc);
         JButton btnBrowseInput = new JButton("Parcourir...");
@@ -65,8 +76,12 @@ public class AutoStepperGUI extends JFrame {
         filesPanel.add(btnBrowseInput, gbc);
 
         gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
-        filesPanel.add(new JLabel("Dossier de sortie :"), gbc);
+        JLabel lblOut = new JLabel("Dossier de sortie :"); lblOut.setForeground(textColor);
+        filesPanel.add(lblOut, gbc);
         txtOutput = new JTextField(".");
+        txtOutput.setBackground(new Color(60, 60, 65));
+        txtOutput.setForeground(Color.WHITE);
+        txtOutput.setCaretColor(Color.WHITE);
         gbc.gridx = 1; gbc.weightx = 1.0;
         filesPanel.add(txtOutput, gbc);
         JButton btnBrowseOutput = new JButton("Parcourir...");
@@ -78,11 +93,16 @@ public class AutoStepperGUI extends JFrame {
 
         // --- SECTION 2 : Personnalisation Visuelle ---
         JPanel visualPanel = new JPanel(new GridBagLayout());
-        visualPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "🖼️ Personnalisation Visuelle"));
+        visualPanel.setBackground(panelBg);
+        visualPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(70, 70, 80)), "🖼️ Personnalisation Visuelle", 0, 0, null, textColor));
         
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
-        visualPanel.add(new JLabel("Image (Bannière) :"), gbc);
+        JLabel lblImg = new JLabel("Image (Bannière) :"); lblImg.setForeground(textColor);
+        visualPanel.add(lblImg, gbc);
         txtCustomImage = new JTextField("");
+        txtCustomImage.setBackground(new Color(60, 60, 65));
+        txtCustomImage.setForeground(Color.WHITE);
+        txtCustomImage.setCaretColor(Color.WHITE);
         txtCustomImage.setToolTipText("Image étroite affichée dans le menu");
         gbc.gridx = 1; gbc.weightx = 1.0;
         visualPanel.add(txtCustomImage, gbc);
@@ -91,8 +111,12 @@ public class AutoStepperGUI extends JFrame {
         visualPanel.add(btnBrowseImage, gbc);
 
         gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
-        visualPanel.add(new JLabel("Image (Fond) :"), gbc);
+        JLabel lblBg = new JLabel("Image (Fond) :"); lblBg.setForeground(textColor);
+        visualPanel.add(lblBg, gbc);
         txtCustomBackground = new JTextField("");
+        txtCustomBackground.setBackground(new Color(60, 60, 65));
+        txtCustomBackground.setForeground(Color.WHITE);
+        txtCustomBackground.setCaretColor(Color.WHITE);
         txtCustomBackground.setToolTipText("Image affichée pendant le jeu");
         gbc.gridx = 1; gbc.weightx = 1.0;
         visualPanel.add(txtCustomBackground, gbc);
@@ -105,14 +129,20 @@ public class AutoStepperGUI extends JFrame {
 
         // --- SECTION 3 : Options de Génération ---
         JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
-        optionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "⚙️ Options de Génération"));
+        optionsPanel.setBackground(panelBg);
+        optionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(70, 70, 80)), "⚙️ Options de Génération", 0, 0, null, textColor));
         
         chkHardMode = new JCheckBox("Mode Difficile");
+        chkHardMode.setBackground(panelBg);
+        chkHardMode.setForeground(textColor);
         chkUseTapper = new JCheckBox("Utiliser Tap Manuel");
+        chkUseTapper.setBackground(panelBg);
+        chkUseTapper.setForeground(textColor);
         optionsPanel.add(chkHardMode);
         optionsPanel.add(chkUseTapper);
         
-        optionsPanel.add(new JLabel("Durée (sec, 0=Tout) :"));
+        JLabel lblDur = new JLabel("Durée (sec, 0=Tout) :"); lblDur.setForeground(textColor);
+        optionsPanel.add(lblDur);
         spinDuration = new JSpinner(new SpinnerNumberModel(0, 0, 3600, 10));
         optionsPanel.add(spinDuration);
 
@@ -126,24 +156,28 @@ public class AutoStepperGUI extends JFrame {
         // Zone de logs (Centre)
         logArea = new JTextArea();
         logArea.setEditable(false);
-        logArea.setBackground(new Color(245, 245, 245));
+        logArea.setBackground(new Color(20, 20, 25));
+        logArea.setForeground(new Color(150, 255, 150));
         logArea.setFont(new Font("Consolas", Font.PLAIN, 12));
-        logArea.setMargin(new Insets(5, 5, 5, 5));
+        logArea.setMargin(new Insets(10, 10, 10, 10));
         JScrollPane scrollPane = new JScrollPane(logArea);
-        scrollPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY), "📝 Journal d'exécution"));
+        scrollPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(100, 100, 110)), "📝 Journal d'exécution", 0, 0, null, textColor));
         
         // Ajouter configPanel et scrollPane au centre de mainPanel
         JPanel centerWrapper = new JPanel(new BorderLayout(0, 15));
+        centerWrapper.setBackground(new Color(30, 30, 35));
         centerWrapper.add(configPanel, BorderLayout.NORTH);
         centerWrapper.add(scrollPane, BorderLayout.CENTER);
         mainPanel.add(centerWrapper, BorderLayout.CENTER);
 
         // Bouton de démarrage (Bas)
         btnStart = new JButton("DÉMARRER LA GÉNÉRATION DES STEPS");
-        btnStart.setFont(new Font("SansSerif", Font.BOLD, 14));
-        btnStart.setPreferredSize(new Dimension(0, 50));
-        btnStart.setBackground(new Color(70, 130, 180));
+        btnStart.setFont(new Font("SansSerif", Font.BOLD, 16));
+        btnStart.setPreferredSize(new Dimension(0, 60));
+        btnStart.setBackground(new Color(50, 150, 80));
         btnStart.setForeground(Color.WHITE);
+        btnStart.setFocusPainted(false);
+        btnStart.setBorder(BorderFactory.createRaisedBevelBorder());
         mainPanel.add(btnStart, BorderLayout.SOUTH);
 
         // --- Événements ---

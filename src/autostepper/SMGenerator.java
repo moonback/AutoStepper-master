@@ -154,7 +154,13 @@ public class SMGenerator {
 
         try {
             smfile.delete();
-            copyFileUsingStream(songfile, new File(dir, filename));
+            File musicFileDest = new File(dir, filename);
+            try {
+                copyFileUsingStream(songfile, musicFileDest);
+            } catch (IOException e) {
+                System.out.println("Erreur lors de la copie de la musique : " + e.getMessage());
+            }
+
             BufferedWriter writer = new BufferedWriter(new FileWriter(smfile));
             writer.write(
                     Header.replace("$TITLE", shortName)
