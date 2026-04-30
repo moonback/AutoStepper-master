@@ -307,6 +307,9 @@ public class AutoStepper {
 
         // calcul du nombre d'échantillons dans le flux
         float songTime = stream.getMillisecondLength() / 1000f;
+        if (seconds <= 0 || seconds > songTime) {
+            seconds = songTime;
+        }
         int totalSamples = (int) (songTime * stream.getFormat().getSampleRate());
         float timePerSample = fftSize / stream.getFormat().getSampleRate();
 

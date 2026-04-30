@@ -2,10 +2,16 @@ package autostepper;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.List;
+import java.util.prefs.Preferences;
 
 public class AutoStepperGUI extends JFrame {
 
@@ -18,6 +24,8 @@ public class AutoStepperGUI extends JFrame {
     private JCheckBox chkUseTapper;
     private JTextArea logArea;
     private JButton btnStart;
+    
+    private Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 
     public AutoStepperGUI() {
         setTitle("AutoStepper v1.7 - Interface Graphique");
@@ -104,8 +112,8 @@ public class AutoStepperGUI extends JFrame {
         optionsPanel.add(chkHardMode);
         optionsPanel.add(chkUseTapper);
         
-        optionsPanel.add(new JLabel("Durée (sec) :"));
-        spinDuration = new JSpinner(new SpinnerNumberModel(90, 10, 600, 10));
+        optionsPanel.add(new JLabel("Durée (sec, 0=Tout) :"));
+        spinDuration = new JSpinner(new SpinnerNumberModel(0, 0, 3600, 10));
         optionsPanel.add(spinDuration);
 
         JButton btnAdvancedOptions = new JButton("Options Avancées...");
@@ -175,6 +183,86 @@ public class AutoStepperGUI extends JFrame {
 
         // Redirection du flux System.out vers le JTextArea
         redirectSystemStreams();
+
+        // Initialisations supplémentaires
+        loadPreferences();
+        setupValidation();
+        setupDragAndDrop();
+        
+        // Sauvegarde des préférences à la fermeture
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                savePreferences();
+            }
+        });
+    }
+
+    private void loadPreferences() {
+        txtInput.setText(prefs.get("input", "."));
+        txtOutput.setText(prefs.get("output", "."));
+        txtCustomImage.setText(prefs.get("customImage", ""));
+        txtCustomBackground.setText(prefs.get("customBackground", ""));
+        chkHardMode.setSelected(prefs.getBoolean("hardMode", false));
+        chkUseTapper.setSelected(prefs.getBoolean("useTapper", false));
+        spinDuration.setValue(prefs.getInt("duration", 0));
+    }
+
+    private void savePreferences() {
+        prefs.put("input", txtInput.getText());
+        prefs.put("output", txtOutput.getText());
+        prefs.put("customImage", txtCustomImage.getText());
+        prefs.put("customBackground", txtCustomBackground.getText());
+        prefs.putBoolean("hardMode", chkHardMode.isSelected());
+        prefs.putBoolean("useTapper", chkUseTapper.isSelected());
+        prefs.putInt("duration", (Integer) spinDuration.getValue());
+    }
+
+    private void setupValidation() {
+        DocumentListener validator = new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { validateInputs(); }
+            public void removeUpdate(DocumentEvent e) { validateInputs(); }
+            public void changedUpdate(DocumentEvent e) { validateInputs(); }
+        };
+        txtInput.getDocument().addDocumentListener(validator);
+        validateInputs();
+    }
+
+    private void validateInputs() {
+        String in = txtInput.getText().trim();
+        btnStart.setEnabled(!in.isEmpty());
+    }
+
+    private void setupDragAndDrop() {
+        enableDragAndDrop(txtInput);
+        enableDragAndDrop(txtOutput);
+        enableDragAndDrop(txtCustomImage);
+        enableDragAndDrop(txtCustomBackground);
+    }
+
+    private void enableDragAndDrop(JTextField textField) {
+        textField.setTransferHandler(new TransferHandler() {
+            @Override
+            public boolean canImport(TransferSupport support) {
+                return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
+            }
+
+            @Override
+            public boolean importData(TransferSupport support) {
+                if (!canImport(support)) return false;
+                try {
+                    Transferable t = support.getTransferable();
+                    List<File> files = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
+                    if (files != null && files.size() > 0) {
+                        textField.setText(files.get(0).getAbsolutePath());
+                        validateInputs();
+                    }
+                    return true;
+                } catch (Exception e) {
+                    return false;
+                }
+            }
+        });
     }
 
     private void showAdvancedOptionsDialog() {
