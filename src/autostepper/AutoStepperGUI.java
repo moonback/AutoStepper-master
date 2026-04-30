@@ -1105,15 +1105,63 @@ public class AutoStepperGUI extends JFrame {
         enableDragAndDrop(txtCustomBackground);
     }
 
+    private static final String CURRENT_VERSION = "v1.8";
+    private static final String UPDATE_URL = "https://api.github.com/repos/moonback/AutoStepper-master/releases/latest";
+
     private void checkForUpdates() {
         new Thread(() -> {
             try {
-                System.out.println("Recherche de mises à jour en cours...");
-                Thread.sleep(1500);
-                String latestVersion = "v1.8";
-                System.out.println("Mise à jour automatique : Vous disposez de la dernière version (" + latestVersion + ").");
+                System.out.println("Recherche de mises à jour en cours via GitHub...");
+                java.net.URL url = new java.net.URL(UPDATE_URL);
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+
+                if (conn.getResponseCode() == 200) {
+                    java.io.BufferedReader in = new java.io.BufferedReader(
+                            new java.io.InputStreamReader(conn.getInputStream()));
+                    String inputLine;
+                    StringBuilder content = new StringBuilder();
+                    while ((inputLine = in.readLine()) != null) {
+                        content.append(inputLine);
+                    }
+                    in.close();
+
+                    String json = content.toString();
+                    String searchKey = "\"tag_name\":";
+                    int idx = json.indexOf(searchKey);
+                    if (idx != -1) {
+                        int start = json.indexOf("\"", idx + searchKey.length()) + 1;
+                        int end = json.indexOf("\"", start);
+                        String latestVersion = json.substring(start, end);
+
+                        if (CURRENT_VERSION.equals(latestVersion)) {
+                            System.out.println("Mise à jour automatique : Vous disposez de la dernière version ("
+                                    + CURRENT_VERSION + ").");
+                        } else {
+                            System.out.println("Mise à jour automatique : Une nouvelle version est disponible ("
+                                    + latestVersion + ") !");
+                            System.out.println("Veuillez consulter le dépôt GitHub pour la télécharger.");
+                            SwingUtilities.invokeLater(() -> {
+                                JOptionPane.showMessageDialog(this,
+                                        "Une nouvelle version (" + latestVersion + ") d'AutoStepper est disponible !\n"
+                                                +
+                                                "Vous utilisez actuellement la version " + CURRENT_VERSION + ".",
+                                        "Mise à jour disponible",
+                                        JOptionPane.INFORMATION_MESSAGE);
+                            });
+                        }
+                    } else {
+                        System.out.println("Impossible de lire la version depuis le serveur.");
+                    }
+                } else {
+                    System.out.println(
+                            "Aucune information de mise à jour trouvée (Code: " + conn.getResponseCode() + ").");
+                }
             } catch (Exception e) {
-                System.out.println("Impossible de vérifier les mises à jour.");
+                System.out.println("Impossible de se connecter au serveur de mise à jour (" + e.getMessage() + ").");
             }
         }).start();
     }
@@ -1378,7 +1426,8 @@ public class AutoStepperGUI extends JFrame {
                 int total = songTableModel.getEntries().size();
                 java.util.concurrent.atomic.AtomicInteger progress = new java.util.concurrent.atomic.AtomicInteger(0);
                 int threads = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
-                java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newFixedThreadPool(threads);
+                java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors
+                        .newFixedThreadPool(threads);
 
                 for (SongEntry entry : songTableModel.getEntries()) {
                     executor.submit(() -> {
@@ -1402,13 +1451,14 @@ public class AutoStepperGUI extends JFrame {
                         } finally {
                             int current = progress.incrementAndGet();
                             SwingUtilities.invokeLater(() -> {
-                                if (progressBar.isIndeterminate()) progressBar.setIndeterminate(false);
+                                if (progressBar.isIndeterminate())
+                                    progressBar.setIndeterminate(false);
                                 progressBar.setValue((int) ((current / (float) total) * 100));
                             });
                         }
                     });
                 }
-                
+
                 executor.shutdown();
                 try {
                     executor.awaitTermination(Long.MAX_VALUE, java.util.concurrent.TimeUnit.NANOSECONDS);
