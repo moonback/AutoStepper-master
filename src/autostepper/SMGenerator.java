@@ -110,7 +110,14 @@ public class SMGenerator {
         // obtenir une image pour le sm
         File imgFile = new File(dir, filename + "_img.png");
         String imgFileName = "";
-        if (imgFile.exists() == false) {
+        if (AutoStepper.customImagePath != null && new File(AutoStepper.customImagePath).exists()) {
+            System.out.println("Utilisation de l'image personnalisée : " + AutoStepper.customImagePath);
+            try {
+                copyFileUsingStream(new File(AutoStepper.customImagePath), imgFile);
+            } catch (IOException e) {
+                System.out.println("Erreur lors de la copie de l'image : " + e.getMessage());
+            }
+        } else if (imgFile.exists() == false) {
             System.out.println("Tentative de récupération d'une image pour le fond et la bannière...");
             GoogleImageSearch.FindAndSaveImage(
                     songname.replace("(", " ").replace(")", " ").replace("www.", " ").replace("_", " ")

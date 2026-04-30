@@ -21,6 +21,7 @@ public class AutoStepper {
     public static float MAX_BPM = 170f, MIN_BPM = 70f, BPM_SENSITIVITY = 0.05f, STARTSYNC = 0.0f;
     public static double TAPSYNC = -0.11;
     public static boolean USETAPPER = false, HARDMODE = false, UPDATESM = false;
+    public static String customImagePath = null;
 
     public static Minim minim;
     public static AutoStepper myAS = new AutoStepper();
