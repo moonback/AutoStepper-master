@@ -5,13 +5,14 @@
 ---
 
 ## ✨ Fonctionnalités
-*   **Interface Graphique (Nouveau)** : Plus besoin de taper des commandes, utilisez la fenêtre conviviale avec son nouveau design structuré !
+*   **Interface Graphique Améliorée (Nouveau)** : Design structuré, facile à lire, avec sécurité anti-erreur.
+*   **Glisser-Déposer (Drag & Drop) (Nouveau)** : Glissez directement vos musiques et images dans l'application pour gagner du temps !
+*   **Mémoire des Préférences (Nouveau)** : L'application se souvient de vos derniers réglages à chaque réouverture.
 *   **Génération complète** : Crée tous les niveaux de difficulté (Beginner à Challenge).
 *   **Analyse avancée** : Support des notes maintenues (holds), des sauts (jumps) et des mines.
 *   **Artwork Automatique** : Recherche automatique de bannières et fonds sur Google Images.
-*   **Images Personnalisées (Nouveau)** : Possibilité d'uploader votre propre **Bannière** et votre propre **Arrière-plan** séparément.
-*   **Métadonnées Avancées (Nouveau)** : Ajoutez manuellement le Titre Translit, l'Artiste Translit, le Genre, etc., via le bouton d'Options Avancées.
-*   **Mode Tap Manuel** : Calculez le BPM vous-même en tapant sur votre clavier si l'analyse automatique échoue.
+*   **Images Personnalisées** : Possibilité d'uploader votre propre **Bannière** et votre propre **Arrière-plan** séparément.
+*   **Métadonnées Avancées** : Ajoutez manuellement le Titre Translit, l'Artiste Translit, le Genre, etc., via le bouton d'Options Avancées.
 *   **Multi-fichiers** : Traitez une chanson seule ou tout un dossier d'un coup.
 
 ---
@@ -20,10 +21,15 @@
 
 ### 🖥️ Mode Interface Graphique (Recommandé)
 Double-cliquez simplement sur le fichier **`AutoStepper.jar`**. L'interface est divisée en sections claires :
-1. **📁 Fichiers et Dossiers** : Sélectionnez votre fichier/dossier de musique et le dossier de sortie.
-2. **🖼️ Personnalisation Visuelle** : (Optionnel) Uploadez une image pour la bannière et une image pour le fond du jeu.
-3. **⚙️ Options de Génération** : Choisissez la durée, le mode difficile, ou ouvrez les **Options Avancées** pour renseigner les balises détaillées du fichier SM (Translit, Genre...).
-4. Cliquez sur **DÉMARRER LA GÉNÉRATION DES STEPS** et suivez la progression dans le journal d'exécution.
+1. **📁 Fichiers et Dossiers** : 
+   * Sélectionnez votre fichier/dossier de musique et le dossier de sortie.
+   * *Astuce : Vous pouvez **glisser-déposer (Drag & Drop)** directement vos fichiers depuis l'explorateur Windows dans ces champs !*
+2. **🖼️ Personnalisation Visuelle** : 
+   * (Optionnel) Glissez-déposez une image pour la bannière et une image pour le fond du jeu.
+3. **⚙️ Options de Génération** : 
+   * Réglez la durée. **Laissez à `0` pour générer les steps sur toute la longueur de la musique.**
+   * Choisissez le mode difficile, ou ouvrez les **Options Avancées** pour renseigner les balises détaillées du fichier SM.
+4. Cliquez sur **DÉMARRER LA GÉNÉRATION DES STEPS** et suivez la progression dans le journal d'exécution. Le bouton sera grisé tant qu'aucune musique n'est renseignée.
 
 ### ⌨️ Mode Ligne de commande
 Pour les utilisateurs avancés, vous pouvez toujours utiliser les arguments :
