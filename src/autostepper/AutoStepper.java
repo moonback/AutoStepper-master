@@ -189,9 +189,11 @@ public class AutoStepper {
                 String extCheck = f.getName().toLowerCase();
                 if (f.isFile() && (extCheck.endsWith(".mp3") || extCheck.endsWith(".wav"))) work.add(f);
             }
+            final float finalDuration = duration;
+            final String finalOutputDir = outputDir;
             ExecutorService pool = Executors.newFixedThreadPool(threads);
             for (File f : work) {
-                pool.submit(() -> new AutoStepper().analyzeUsingAudioRecordingStream(f, duration, outputDir));
+                pool.submit(() -> new AutoStepper().analyzeUsingAudioRecordingStream(f, finalDuration, finalOutputDir));
             }
             pool.shutdown();
             try {
