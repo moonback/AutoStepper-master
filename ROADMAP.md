@@ -23,10 +23,9 @@ Bienvenue dans la feuille de route d'**AutoStepper**. Ce document suit l'évolut
 - [x] **Preview des Steps** : Fenêtre de prévisualisation montrant un défilement rapide des flèches générées.
 
 ### ⚙️ Algorithme & Steps
-- [ ] **BPM Variable** : Support des changements de tempo au milieu d'une chanson.
-- [ ] **Nouveaux Modes de Jeu** : Support pour **Pump It Up** (5 panels) et **Solo** (6 panels).
-- [ ] **IA de Placement des Mines** : Placement intelligent des mines basé sur l'agressivité de la musique.
-- [ ] **Détection des Silences** : Couper automatiquement le début et la fin silencieuse des morceaux.
+- [x] **BPM Variable** : Support des changements de tempo au milieu d'une chanson.
+- [x] **IA de Placement des Mines** : Placement intelligent des mines basé sur l'agressivité de la musique.
+- [x] **Détection des Silences** : Couper automatiquement le début et la fin silencieuse des morceaux.
 
 ### 🎨 Interface & UX
 - [ ] **Thèmes Personnalisés** : Choix entre plusieurs palettes de couleurs (Cyberpunk, Soft Light, Classic).

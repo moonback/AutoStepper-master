@@ -99,7 +99,7 @@ public class SMGenerator {
         return new File(dir, filename + ".sm");
     }
 
-    public static BufferedWriter GenerateSM(float BPM, float startTime, File songfile, String outputdir) {
+    public static BufferedWriter GenerateSM(float BPM, float startTime, File songfile, String outputdir, String bpmString) {
         String filename = songfile.getName();
         String songname = filename.replace(".mp3", "").replace(".wav", "").replace(".MP3", "").replace(".WAV", "");
         
@@ -184,7 +184,7 @@ public class SMGenerator {
                             .replace("$BACKIMAGE", bgFileName)
                             .replace("$MUSICFILE", filename)
                             .replace("$STARTTIME", Float.toString(startTime + AutoStepper.STARTSYNC))
-                            .replace("$BPM", Float.toString(BPM)));
+                            .replace("$BPM", bpmString != null ? bpmString : Float.toString(BPM)));
             return writer;
         } catch (Exception e) {
         }
