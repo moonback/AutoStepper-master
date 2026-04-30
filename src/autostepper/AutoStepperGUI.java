@@ -550,14 +550,54 @@ public class AutoStepperGUI extends JFrame {
         }
 
         private void drawStepPreview(Graphics2D g2, int px, int mid) {
-            g2.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            g2.setFont(new Font("Segoe UI", Font.BOLD, 22));
             String[] arrows = {"←", "↓", "↑", "→"};
-            Color[] colors = {ACCENT, ACCENT_GREEN, new Color(239, 68, 68), ACCENT_HOVER};
-            long tick = System.currentTimeMillis() / 120;
+            Color[] colors = {
+                new Color(239, 68, 68),   // Gauche: Rouge
+                new Color(59, 130, 246),  // Bas: Bleu
+                new Color(16, 185, 129),  // Haut: Vert
+                new Color(245, 158, 11)   // Droite: Orange
+            };
+            
+            // Empêcher l'affichage de sortir de l'écran à droite
+            int startX = px + 20;
+            if (startX > getWidth() - 110) startX = px - 110;
+            
+            long time = System.currentTimeMillis();
+            float audioLevel = currentPlayer.mix.level() * 5f; // Amplification pour l'effet visuel
+            
             for (int i = 0; i < 4; i++) {
-                if ((tick + i) % 4 == 0) {
-                    g2.setColor(colors[i]);
-                    g2.drawString(arrows[i], px + 8 + (i * 18), mid + 5);
+                int ax = startX + (i * 24);
+                int ay = mid + 5; // Position de la cible
+                
+                // 1. Dessiner les cibles "fantômes"
+                g2.setColor(new Color(255, 255, 255, 40));
+                g2.drawString(arrows[i], ax, ay);
+                
+                // 2. Simuler une note défilante
+                double speed = 0.12; // Vitesse réduite pour une meilleure lisibilité
+                int distance = 180; // Distance totale de parcours
+                
+                // Décalage pour chaque flèche pour éviter qu'elles arrivent toutes en même temps
+                int scrollY = (int)((time * speed + (i * 45)) % distance); 
+                int noteY = (mid + (distance / 2)) - scrollY; // La note monte
+                
+                // 3. Effet de Hit / Flash
+                if (Math.abs(noteY - ay) < 15 && audioLevel > 0.3f) {
+                    // Lueur d'impact
+                    g2.setColor(new Color(colors[i].getRed(), colors[i].getGreen(), colors[i].getBlue(), 100 + (int)(Math.min(1f, audioLevel)*100)));
+                    g2.fillRoundRect(ax - 2, ay - 20, 24, 24, 8, 8);
+                    
+                    // Flèche blanche éclatante
+                    g2.setColor(Color.WHITE);
+                    g2.drawString(arrows[i], ax, ay);
+                } 
+                // 4. Dessiner la note seulement si elle n'a pas encore dépassé la cible de trop
+                else if (noteY >= ay - 15) {
+                    // Fondu en approche
+                    int alpha = Math.min(255, Math.max(0, (noteY - (ay - 15)) * 8));
+                    g2.setColor(new Color(colors[i].getRed(), colors[i].getGreen(), colors[i].getBlue(), alpha));
+                    g2.drawString(arrows[i], ax, noteY);
                 }
             }
         }
