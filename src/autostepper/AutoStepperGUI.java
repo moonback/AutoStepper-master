@@ -50,6 +50,12 @@ public class AutoStepperGUI extends JFrame {
     private JButton btnPlay;
     private Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 
+    // --- Variables du design multi-étape ---
+    private CardLayout wizardLayout;
+    private JPanel wizardPanel;
+    private int currentStep = 0;
+    private JButton btnNext, btnPrev;
+    private JLabel lblStepTracker;
     // --- Data Model for per-song customization ---
     private static class SongEntry {
         File file;
@@ -157,7 +163,18 @@ public class AutoStepperGUI extends JFrame {
         lblSub.setFont(new Font("Segoe UI", Font.ITALIC, 14));
         lblSub.setForeground(TEXT_SECONDARY);
         lblSub.setBorder(new EmptyBorder(12, 0, 0, 0));
-        header.add(lblSub, BorderLayout.EAST);
+
+        lblStepTracker = new JLabel("Étape 1 / 2");
+        lblStepTracker.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblStepTracker.setForeground(ACCENT_GREEN);
+        lblStepTracker.setBorder(new EmptyBorder(12, 12, 0, 20));
+
+        JPanel eastHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        eastHeader.setOpaque(false);
+        eastHeader.add(lblStepTracker);
+        eastHeader.add(lblSub);
+
+        header.add(eastHeader, BorderLayout.EAST);
 
         root.add(header, BorderLayout.NORTH);
 
@@ -165,34 +182,45 @@ public class AutoStepperGUI extends JFrame {
         JPanel center = new JPanel(new BorderLayout(0, 12));
         center.setOpaque(false);
 
-        // --- Zone de configuration scrollable ---
-        JPanel configArea = new JPanel();
-        configArea.setLayout(new BoxLayout(configArea, BoxLayout.Y_AXIS));
-        configArea.setOpaque(false);
+        // ====== CENTRE (wizard) ======
+        wizardLayout = new CardLayout();
+        wizardPanel = new JPanel(wizardLayout);
+        wizardPanel.setOpaque(false);
 
-        // --- Carte : Fichiers ---
-        configArea.add(buildFilesCard());
-        configArea.add(Box.createRigidArea(new Dimension(0, 10)));
+        // --- ÉTAPE 1 : Fichiers & Options ---
+        JPanel step1 = new JPanel();
+        step1.setLayout(new BoxLayout(step1, BoxLayout.Y_AXIS));
+        step1.setOpaque(false);
+        step1.add(buildFilesCard());
+        step1.add(Box.createRigidArea(new Dimension(0, 10)));
+        step1.add(buildOptionsCard());
 
-        // --- Carte : Liste des musiques ---
-        configArea.add(buildSongListCard());
-        configArea.add(Box.createRigidArea(new Dimension(0, 10)));
+        // --- ÉTAPE 2 : Musiques & Personnalisation ---
+        JPanel step2 = new JPanel();
+        step2.setLayout(new BoxLayout(step2, BoxLayout.Y_AXIS));
+        step2.setOpaque(false);
+        step2.add(buildSongListCard());
+        step2.add(Box.createRigidArea(new Dimension(0, 10)));
+        step2.add(buildVisualCard());
 
-        // --- Carte : Édition & Prévisualisation ---
-        configArea.add(buildVisualCard());
-        configArea.add(Box.createRigidArea(new Dimension(0, 10)));
+        JScrollPane scroll1 = new JScrollPane(step1);
+        scroll1.setBorder(null);
+        scroll1.setOpaque(false);
+        scroll1.getViewport().setOpaque(false);
+        scroll1.getVerticalScrollBar().setUnitIncrement(16);
+        scroll1.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-        // --- Carte : Options ---
-        configArea.add(buildOptionsCard());
+        JScrollPane scroll2 = new JScrollPane(step2);
+        scroll2.setBorder(null);
+        scroll2.setOpaque(false);
+        scroll2.getViewport().setOpaque(false);
+        scroll2.getVerticalScrollBar().setUnitIncrement(16);
+        scroll2.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-        JScrollPane scrollConfig = new JScrollPane(configArea);
-        scrollConfig.setBorder(null);
-        scrollConfig.setOpaque(false);
-        scrollConfig.getViewport().setOpaque(false);
-        scrollConfig.getVerticalScrollBar().setUnitIncrement(16);
-        scrollConfig.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        wizardPanel.add(scroll1, "STEP1");
+        wizardPanel.add(scroll2, "STEP2");
 
-        center.add(scrollConfig, BorderLayout.CENTER);
+        center.add(wizardPanel, BorderLayout.CENTER);
 
         root.add(center, BorderLayout.CENTER);
 
@@ -225,12 +253,22 @@ public class AutoStepperGUI extends JFrame {
         bottomArea.add(progressBar, BorderLayout.NORTH);
         bottomArea.add(scrollLog, BorderLayout.CENTER);
 
-        btnStart = createGradientButton("DÉMARRER LA GÉNÉRATION DES STEPS", ACCENT_GREEN, ACCENT_GREEN_H);
-        btnStart.setPreferredSize(new Dimension(0, 56));
-        btnStart.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        btnStart = createGradientButton("DÉMARRER", ACCENT_GREEN, ACCENT_GREEN_H);
+        btnStart.setPreferredSize(new Dimension(220, 56));
+        btnStart.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btnStart.setVisible(false);
 
-        JButton btnReset = new JButton("Réinitialiser Tout");
-        // ... (styles already set or will be merged)
+        btnPrev = createAccentButton("◄ Précédent");
+        btnPrev.setPreferredSize(new Dimension(140, 56));
+        btnPrev.setVisible(false);
+
+        btnNext = createAccentButton("Suivant ►");
+        btnNext.setPreferredSize(new Dimension(140, 56));
+
+        btnPrev.addActionListener(e -> setStep(0));
+        btnNext.addActionListener(e -> setStep(1));
+
+        JButton btnReset = new JButton("Réinitialiser");
         btnReset.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnReset.setForeground(TEXT_SECONDARY);
         btnReset.setBackground(BG_CARD);
@@ -255,10 +293,16 @@ public class AutoStepperGUI extends JFrame {
         leftActions.add(btnReset);
         leftActions.add(btnHelp);
 
+        JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightActions.setOpaque(false);
+        rightActions.add(btnPrev);
+        rightActions.add(btnNext);
+        rightActions.add(btnStart);
+
         JPanel actionPanel = new JPanel(new BorderLayout(10, 0));
         actionPanel.setOpaque(false);
         actionPanel.add(leftActions, BorderLayout.WEST);
-        actionPanel.add(btnStart, BorderLayout.CENTER);
+        actionPanel.add(rightActions, BorderLayout.EAST);
 
         bottomArea.add(actionPanel, BorderLayout.SOUTH);
         root.add(bottomArea, BorderLayout.SOUTH);
@@ -277,6 +321,28 @@ public class AutoStepperGUI extends JFrame {
                 savePreferences();
             }
         });
+    }
+
+    // ============================================================
+    // NAVIGATION WIZARD
+    // ============================================================
+
+    private void setStep(int step) {
+        currentStep = step;
+        if (currentStep == 0) {
+            wizardLayout.show(wizardPanel, "STEP1");
+            btnPrev.setVisible(false);
+            btnNext.setVisible(true);
+            btnStart.setVisible(false);
+            lblStepTracker.setText("Étape 1 / 2");
+        } else if (currentStep == 1) {
+            scanInput();
+            wizardLayout.show(wizardPanel, "STEP2");
+            btnPrev.setVisible(true);
+            btnNext.setVisible(false);
+            btnStart.setVisible(true);
+            lblStepTracker.setText("Étape 2 / 2");
+        }
     }
 
     // ============================================================
@@ -1325,6 +1391,7 @@ public class AutoStepperGUI extends JFrame {
         updateDropZonePreview("", lblBannerPreview, "Glissez une image ici");
         updateDropZonePreview("", lblBgPreview, "Glissez une image ou vidéo ici");
         validateInputs();
+        setStep(0);
         System.out.println("Application réinitialisée.");
     }
 
