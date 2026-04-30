@@ -23,14 +23,19 @@
 ### 🖥️ Mode Interface Graphique (Recommandé)
 Double-cliquez simplement sur le fichier **`AutoStepper.jar`**. L'interface est divisée en sections claires :
 1. **📁 Fichiers et Dossiers** : 
-   * Sélectionnez votre fichier/dossier de musique et le dossier de sortie.
-   * *Astuce : Vous pouvez **glisser-déposer (Drag & Drop)** directement vos fichiers depuis l'explorateur Windows dans ces champs !*
-2. **🖼️ Personnalisation Visuelle** : 
-   * (Optionnel) Glissez-déposez une image pour la bannière et une image pour le fond du jeu.
-3. **⚙️ Options de Génération** : 
-   * Réglez la durée. **Laissez à `0` pour générer les steps sur toute la longueur de la musique.**
-   * Choisissez le mode difficile, ou ouvrez les **Options Avancées** pour renseigner les balises détaillées du fichier SM.
-4. Cliquez sur **DÉMARRER LA GÉNÉRATION DES STEPS** et suivez la progression dans le journal d'exécution. Le bouton sera grisé tant qu'aucune musique n'est renseignée.
+   * Sélectionnez votre dossier de musique. Les musiques détectées s'afficheront automatiquement dans la liste.
+   * *Astuce : Vous pouvez glisser-déposer vos dossiers directement dans les champs.*
+2. **📊 Liste des Musiques** :
+   * Sélectionnez un morceau dans la liste pour lui assigner des visuels spécifiques.
+   * Le tableau indique l'état de personnalisation pour chaque fichier.
+3. **🖼️ Personnalisation Visuelle Premium** : 
+   * Glissez-déposez vos images dans les zones dédiées (Bannière et Fond). 
+   * **Nouveau** : Chaque morceau peut avoir son propre pack d'images ! Les zones s'illuminent lors du survol d'un fichier.
+4. **⚙️ Options & Contrôles** : 
+   * Réglez la difficulté et la durée.
+   * Utilisez le bouton **Réinitialiser Tout** pour vider tous les champs et la liste.
+   * Nettoyez le journal d'exécution avec le bouton dédié.
+5. Cliquez sur **DÉMARRER LA GÉNÉRATION DES STEPS** pour lancer le traitement par lot.
 
 ### ⌨️ Mode Ligne de commande
 Pour les utilisateurs avancés, vous pouvez utiliser l'application via un terminal. Voici quelques exemples courants :
