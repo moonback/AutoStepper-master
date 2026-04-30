@@ -27,17 +27,5 @@ Bienvenue dans la feuille de route d'**AutoStepper**. Ce document suit l'évolut
 - [x] **IA de Placement des Mines** : Placement intelligent des mines basé sur l'agressivité de la musique.
 - [x] **Détection des Silences** : Couper automatiquement le début et la fin silencieuse des morceaux.
 
-### 🎨 Interface & UX
-- [ ] **Thèmes Personnalisés** : Choix entre plusieurs palettes de couleurs (Cyberpunk, Soft Light, Classic).
-- [ ] **Éditeur Rapide** : Possibilité de modifier manuellement le BPM ou l'Offset avant la génération finale.
-- [ ] **Support Multi-Langues** : Passage dynamique entre le Français et l'Anglais.
-
----
-
-## 🛠️ Infrastructure & Cloud
-- [ ] **Auto-Update** : Système de mise à jour automatique au lancement de l'application.
-- [ ] **Export Cloud** : Envoi direct du pack généré sur un serveur ou un service de partage.
-- [ ] **Version macOS/Linux** : Scripts de build optimisés pour les autres systèmes d'exploitation.
-
 ---
 *Vous avez une idée ? N'hésitez pas à proposer des suggestions pour améliorer AutoStepper !*
