@@ -1,12 +1,14 @@
 package autostepper;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+import javax.swing.border.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.*;
+import java.awt.geom.RoundRectangle2D;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -15,186 +17,150 @@ import java.util.prefs.Preferences;
 
 public class AutoStepperGUI extends JFrame {
 
-    private JTextField txtInput;
-    private JTextField txtOutput;
-    private JTextField txtCustomImage;
-    private JTextField txtCustomBackground;
+    // --- Palette de couleurs premium ---
+    private static final Color BG_DARK       = new Color(18, 18, 24);
+    private static final Color BG_CARD       = new Color(28, 28, 38);
+    private static final Color BG_INPUT      = new Color(38, 38, 50);
+    private static final Color ACCENT        = new Color(99, 102, 241);   // Indigo
+    private static final Color ACCENT_HOVER  = new Color(129, 132, 255);
+    private static final Color ACCENT_GREEN  = new Color(16, 185, 129);
+    private static final Color ACCENT_GREEN_H= new Color(52, 211, 153);
+    private static final Color TEXT_PRIMARY   = new Color(230, 230, 245);
+    private static final Color TEXT_SECONDARY = new Color(148, 148, 168);
+    private static final Color BORDER_COLOR   = new Color(55, 55, 72);
+    private static final Color LOG_GREEN     = new Color(52, 211, 153);
+
+    // --- Composants ---
+    private JTextField txtInput, txtOutput, txtCustomImage, txtCustomBackground;
     private JSpinner spinDuration;
     private JCheckBox chkHardMode;
     private JTextArea logArea;
     private JButton btnStart;
-    private JLabel lblBannerPreview;
-    private JLabel lblBgPreview;
-    
+    private JLabel lblBannerPreview, lblBgPreview;
+    private JProgressBar progressBar;
     private Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 
     public AutoStepperGUI() {
-        setTitle("AutoStepper v1.7 - Interface Graphique");
+        setTitle("AutoStepper v1.7");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(700, 650);
+        setSize(780, 720);
         setLocationRelativeTo(null);
+        setMinimumSize(new Dimension(680, 600));
 
-        // Panel principal avec thème sombre
-        JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
-        mainPanel.setBackground(new Color(30, 30, 35));
-        mainPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
-        setContentPane(mainPanel);
+        // Panel racine
+        JPanel root = new JPanel(new BorderLayout(0, 0));
+        root.setBackground(BG_DARK);
+        root.setBorder(new EmptyBorder(16, 16, 16, 16));
+        setContentPane(root);
 
-        // Titre de l'application
-        JLabel lblTitle = new JLabel("AutoStepper - Générateur StepMania", SwingConstants.CENTER);
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 26));
-        lblTitle.setForeground(new Color(220, 220, 230));
-        mainPanel.add(lblTitle, BorderLayout.NORTH);
+        // ====== EN-TÊTE ======
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.setBorder(new EmptyBorder(0, 0, 14, 0));
 
-        // Panel de configuration central
-        JPanel configPanel = new JPanel();
-        configPanel.setBackground(new Color(30, 30, 35));
-        configPanel.setLayout(new BoxLayout(configPanel, BoxLayout.Y_AXIS));
-        
-        // Style commun pour les labels et bordures
-        Color textColor = new Color(200, 200, 210);
-        Color panelBg = new Color(45, 45, 50);
-        
-        // --- SECTION 1 : Fichiers et Dossiers ---
-        JPanel filesPanel = new JPanel(new GridBagLayout());
-        filesPanel.setBackground(panelBg);
-        filesPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(70, 70, 80)), "📁 Fichiers et Dossiers", 0, 0, null, textColor));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 10, 8, 10);
-        
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
-        JLabel lblIn = new JLabel("Musique / Dossier :"); lblIn.setForeground(textColor);
-        filesPanel.add(lblIn, gbc);
-        txtInput = new JTextField(".");
-        txtInput.setBackground(new Color(60, 60, 65));
-        txtInput.setForeground(Color.WHITE);
-        txtInput.setCaretColor(Color.WHITE);
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        filesPanel.add(txtInput, gbc);
-        JButton btnBrowseInput = new JButton("Parcourir...");
-        gbc.gridx = 2; gbc.weightx = 0;
-        filesPanel.add(btnBrowseInput, gbc);
+        JLabel lblTitle = new JLabel("AutoStepper");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        lblTitle.setForeground(TEXT_PRIMARY);
+        header.add(lblTitle, BorderLayout.WEST);
 
-        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
-        JLabel lblOut = new JLabel("Dossier de sortie :"); lblOut.setForeground(textColor);
-        filesPanel.add(lblOut, gbc);
-        txtOutput = new JTextField(".");
-        txtOutput.setBackground(new Color(60, 60, 65));
-        txtOutput.setForeground(Color.WHITE);
-        txtOutput.setCaretColor(Color.WHITE);
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        filesPanel.add(txtOutput, gbc);
-        JButton btnBrowseOutput = new JButton("Parcourir...");
-        gbc.gridx = 2; gbc.weightx = 0;
-        filesPanel.add(btnBrowseOutput, gbc);
-        
-        configPanel.add(filesPanel);
-        configPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        JLabel lblSub = new JLabel("v1.7  —  par Maysson.D");
+        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblSub.setForeground(TEXT_SECONDARY);
+        lblSub.setBorder(new EmptyBorder(10, 0, 0, 0));
+        header.add(lblSub, BorderLayout.EAST);
 
-        // --- SECTION 2 : Personnalisation Visuelle ---
-        JPanel visualPanel = new JPanel(new GridBagLayout());
-        visualPanel.setBackground(panelBg);
-        visualPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(70, 70, 80)), "🖼️ Personnalisation Visuelle", 0, 0, null, textColor));
-        
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
-        JLabel lblImg = new JLabel("Image (Bannière) :"); lblImg.setForeground(textColor);
-        visualPanel.add(lblImg, gbc);
-        txtCustomImage = new JTextField("");
-        txtCustomImage.setBackground(new Color(60, 60, 65));
-        txtCustomImage.setForeground(Color.WHITE);
-        txtCustomImage.setCaretColor(Color.WHITE);
-        txtCustomImage.setToolTipText("Image étroite affichée dans le menu");
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        visualPanel.add(txtCustomImage, gbc);
-        JButton btnBrowseImage = new JButton("Parcourir...");
-        gbc.gridx = 2; gbc.weightx = 0;
-        visualPanel.add(btnBrowseImage, gbc);
-        
-        lblBannerPreview = new JLabel("Pas de Banner");
-        lblBannerPreview.setPreferredSize(new Dimension(100, 30));
-        lblBannerPreview.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        lblBannerPreview.setHorizontalAlignment(SwingConstants.CENTER);
-        lblBannerPreview.setForeground(Color.GRAY);
-        gbc.gridx = 3; gbc.weightx = 0;
-        visualPanel.add(lblBannerPreview, gbc);
+        root.add(header, BorderLayout.NORTH);
 
-        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
-        JLabel lblBg = new JLabel("Image (Fond) :"); lblBg.setForeground(textColor);
-        visualPanel.add(lblBg, gbc);
-        txtCustomBackground = new JTextField("");
-        txtCustomBackground.setBackground(new Color(60, 60, 65));
-        txtCustomBackground.setForeground(Color.WHITE);
-        txtCustomBackground.setCaretColor(Color.WHITE);
-        txtCustomBackground.setToolTipText("Image affichée pendant le jeu");
-        gbc.gridx = 1; gbc.weightx = 1.0;
-        visualPanel.add(txtCustomBackground, gbc);
-        JButton btnBrowseBackground = new JButton("Parcourir...");
-        gbc.gridx = 2; gbc.weightx = 0;
-        visualPanel.add(btnBrowseBackground, gbc);
+        // ====== CENTRE (config + logs) ======
+        JPanel center = new JPanel(new BorderLayout(0, 12));
+        center.setOpaque(false);
 
-        lblBgPreview = new JLabel("Pas de Fond");
-        lblBgPreview.setPreferredSize(new Dimension(100, 30));
-        lblBgPreview.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        lblBgPreview.setHorizontalAlignment(SwingConstants.CENTER);
-        lblBgPreview.setForeground(Color.GRAY);
-        gbc.gridx = 3; gbc.weightx = 0;
-        visualPanel.add(lblBgPreview, gbc);
-        
-        configPanel.add(visualPanel);
-        configPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        JPanel configArea = new JPanel();
+        configArea.setOpaque(false);
+        configArea.setLayout(new BoxLayout(configArea, BoxLayout.Y_AXIS));
 
-        // --- SECTION 3 : Options de Génération ---
-        JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
-        optionsPanel.setBackground(panelBg);
-        optionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(70, 70, 80)), "⚙️ Options de Génération", 0, 0, null, textColor));
-        
-        chkHardMode = new JCheckBox("Mode Difficile");
-        chkHardMode.setBackground(panelBg);
-        chkHardMode.setForeground(textColor);
-        optionsPanel.add(chkHardMode);
-        
-        JLabel lblDur = new JLabel("Durée (sec, 0=Tout) :"); lblDur.setForeground(textColor);
-        optionsPanel.add(lblDur);
-        spinDuration = new JSpinner(new SpinnerNumberModel(0, 0, 3600, 10));
-        optionsPanel.add(spinDuration);
+        // --- Carte : Fichiers ---
+        configArea.add(buildFilesCard());
+        configArea.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        JButton btnAdvancedOptions = new JButton("Options Avancées...");
-        optionsPanel.add(btnAdvancedOptions);
+        // --- Carte : Visuel ---
+        configArea.add(buildVisualCard());
+        configArea.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        btnAdvancedOptions.addActionListener(e -> showAdvancedOptionsDialog());
-        
-        configPanel.add(optionsPanel);
+        // --- Carte : Options ---
+        configArea.add(buildOptionsCard());
+        configArea.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Zone de logs (Centre)
+        center.add(configArea, BorderLayout.NORTH);
+
+        // --- Zone de logs ---
         logArea = new JTextArea();
         logArea.setEditable(false);
-        logArea.setBackground(new Color(20, 20, 25));
-        logArea.setForeground(new Color(150, 255, 150));
+        logArea.setBackground(new Color(12, 12, 18));
+        logArea.setForeground(LOG_GREEN);
         logArea.setFont(new Font("Consolas", Font.PLAIN, 12));
-        logArea.setMargin(new Insets(10, 10, 10, 10));
+        logArea.setMargin(new Insets(12, 12, 12, 12));
+        logArea.setCaretColor(LOG_GREEN);
+
         JScrollPane scrollPane = new JScrollPane(logArea);
-        scrollPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(100, 100, 110)), "📝 Journal d'exécution", 0, 0, null, textColor));
-        
-        // Ajouter configPanel et scrollPane au centre de mainPanel
-        JPanel centerWrapper = new JPanel(new BorderLayout(0, 15));
-        centerWrapper.setBackground(new Color(30, 30, 35));
-        centerWrapper.add(configPanel, BorderLayout.NORTH);
-        centerWrapper.add(scrollPane, BorderLayout.CENTER);
-        mainPanel.add(centerWrapper, BorderLayout.CENTER);
+        scrollPane.setBorder(createCardBorder("Journal d'exécution"));
+        scrollPane.getViewport().setBackground(new Color(12, 12, 18));
+        center.add(scrollPane, BorderLayout.CENTER);
 
-        // Bouton de démarrage (Bas)
-        btnStart = new JButton("DÉMARRER LA GÉNÉRATION DES STEPS");
-        btnStart.setFont(new Font("SansSerif", Font.BOLD, 16));
-        btnStart.setPreferredSize(new Dimension(0, 60));
-        btnStart.setBackground(new Color(50, 150, 80));
-        btnStart.setForeground(Color.WHITE);
-        btnStart.setFocusPainted(false);
-        btnStart.setBorder(BorderFactory.createRaisedBevelBorder());
-        mainPanel.add(btnStart, BorderLayout.SOUTH);
+        root.add(center, BorderLayout.CENTER);
 
-        // --- Événements ---
-        btnBrowseInput.addActionListener(e -> {
+        // ====== BAS (progress + bouton) ======
+        JPanel bottomPanel = new JPanel(new BorderLayout(0, 8));
+        bottomPanel.setOpaque(false);
+        bottomPanel.setBorder(new EmptyBorder(12, 0, 0, 0));
+
+        progressBar = new JProgressBar();
+        progressBar.setIndeterminate(false);
+        progressBar.setPreferredSize(new Dimension(0, 4));
+        progressBar.setBorderPainted(false);
+        progressBar.setBackground(BG_CARD);
+        progressBar.setForeground(ACCENT_GREEN);
+        bottomPanel.add(progressBar, BorderLayout.NORTH);
+
+        btnStart = createGradientButton("DÉMARRER LA GÉNÉRATION", ACCENT_GREEN, ACCENT_GREEN_H);
+        btnStart.setPreferredSize(new Dimension(0, 52));
+        btnStart.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        bottomPanel.add(btnStart, BorderLayout.CENTER);
+
+        root.add(bottomPanel, BorderLayout.SOUTH);
+
+        // ====== ÉVÉNEMENTS ======
+        wireEvents();
+        redirectSystemStreams();
+        loadPreferences();
+        setupValidation();
+        setupDragAndDrop();
+        setupImagePreviews();
+
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) { savePreferences(); }
+        });
+    }
+
+    // ============================================================
+    //  CONSTRUCTION DES CARTES
+    // ============================================================
+
+    private JPanel buildFilesCard() {
+        JPanel card = createCard("Fichiers et Dossiers");
+        card.setLayout(new GridBagLayout());
+        GridBagConstraints g = defaultGbc();
+
+        JButton btnIn = createBrowseBtn("btnBrowseInput");
+        JButton btnOut = createBrowseBtn("btnBrowseOutput");
+
+        txtInput = styledField(".");
+        txtOutput = styledField(".");
+
+        addRow(card, g, 0, "Musique / Dossier", txtInput, btnIn);
+        addRow(card, g, 1, "Dossier de sortie",  txtOutput, btnOut);
+
+        btnIn.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser(txtInput.getText());
             chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
             if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -206,7 +172,7 @@ public class AutoStepperGUI extends JFrame {
             }
         });
 
-        btnBrowseOutput.addActionListener(e -> {
+        btnOut.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser(txtOutput.getText());
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -214,41 +180,222 @@ public class AutoStepperGUI extends JFrame {
             }
         });
 
-        btnBrowseImage.addActionListener(e -> {
-            JFileChooser chooser = new JFileChooser(txtCustomImage.getText());
-            chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                txtCustomImage.setText(chooser.getSelectedFile().getAbsolutePath());
-            }
-        });
+        return card;
+    }
 
-        btnBrowseBackground.addActionListener(e -> {
-            JFileChooser chooser = new JFileChooser(txtCustomBackground.getText());
-            chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                txtCustomBackground.setText(chooser.getSelectedFile().getAbsolutePath());
-            }
+    private JPanel buildVisualCard() {
+        JPanel card = createCard("Personnalisation Visuelle");
+        card.setLayout(new GridBagLayout());
+        GridBagConstraints g = defaultGbc();
+
+        JButton btnBI = createBrowseBtn("btnBrowseImage");
+        JButton btnBB = createBrowseBtn("btnBrowseBackground");
+
+        // Banner row
+        g.gridx = 0; g.gridy = 0; g.weightx = 0;
+        card.add(styledLabel("Bannière"), g);
+        txtCustomImage = styledField("");
+        g.gridx = 1; g.weightx = 1.0;
+        card.add(txtCustomImage, g);
+        g.gridx = 2; g.weightx = 0;
+        card.add(btnBI, g);
+
+        lblBannerPreview = createPreviewLabel();
+        g.gridx = 3;
+        card.add(lblBannerPreview, g);
+
+        // Background row
+        g.gridx = 0; g.gridy = 1; g.weightx = 0;
+        card.add(styledLabel("Fond / Vidéo"), g);
+        txtCustomBackground = styledField("");
+        g.gridx = 1; g.weightx = 1.0;
+        card.add(txtCustomBackground, g);
+        g.gridx = 2; g.weightx = 0;
+        card.add(btnBB, g);
+
+        lblBgPreview = createPreviewLabel();
+        g.gridx = 3;
+        card.add(lblBgPreview, g);
+
+        // Wire browse buttons
+        btnBI.addActionListener(e -> browseFile(txtCustomImage));
+        btnBB.addActionListener(e -> browseFile(txtCustomBackground));
+
+        return card;
+    }
+
+    private JPanel buildOptionsCard() {
+        JPanel card = createCard("Options de Génération");
+        card.setLayout(new FlowLayout(FlowLayout.LEFT, 16, 8));
+
+        chkHardMode = new JCheckBox("Mode Difficile");
+        chkHardMode.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        chkHardMode.setForeground(TEXT_PRIMARY);
+        chkHardMode.setBackground(BG_CARD);
+        chkHardMode.setFocusPainted(false);
+        card.add(chkHardMode);
+
+        card.add(styledLabel("Durée (0 = Tout) :"));
+        spinDuration = new JSpinner(new SpinnerNumberModel(0, 0, 3600, 10));
+        spinDuration.setPreferredSize(new Dimension(70, 28));
+        spinDuration.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        card.add(spinDuration);
+
+        JButton btnAdv = createAccentButton("Options Avancées");
+        btnAdv.addActionListener(e -> showAdvancedOptionsDialog());
+        card.add(btnAdv);
+
+        return card;
+    }
+
+    // ============================================================
+    //  COMPOSANTS RÉUTILISABLES
+    // ============================================================
+
+    private JPanel createCard(String title) {
+        JPanel panel = new JPanel();
+        panel.setBackground(BG_CARD);
+        panel.setBorder(createCardBorder(title));
+        return panel;
+    }
+
+    private Border createCardBorder(String title) {
+        Border line = BorderFactory.createLineBorder(BORDER_COLOR, 1);
+        Border titled = BorderFactory.createTitledBorder(line, "  " + title + "  ",
+                TitledBorder.LEFT, TitledBorder.TOP,
+                new Font("Segoe UI", Font.BOLD, 12), ACCENT);
+        Border padding = new EmptyBorder(6, 10, 10, 10);
+        return BorderFactory.createCompoundBorder(titled, padding);
+    }
+
+    private JTextField styledField(String text) {
+        JTextField tf = new JTextField(text);
+        tf.setBackground(BG_INPUT);
+        tf.setForeground(TEXT_PRIMARY);
+        tf.setCaretColor(TEXT_PRIMARY);
+        tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tf.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER_COLOR),
+                new EmptyBorder(5, 8, 5, 8)));
+        return tf;
+    }
+
+    private JLabel styledLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lbl.setForeground(TEXT_SECONDARY);
+        return lbl;
+    }
+
+    private JLabel createPreviewLabel() {
+        JLabel lbl = new JLabel("—");
+        lbl.setPreferredSize(new Dimension(80, 28));
+        lbl.setHorizontalAlignment(SwingConstants.CENTER);
+        lbl.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        lbl.setForeground(TEXT_SECONDARY);
+        lbl.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
+        lbl.setOpaque(true);
+        lbl.setBackground(BG_INPUT);
+        return lbl;
+    }
+
+    private JButton createBrowseBtn(String name) {
+        JButton btn = new JButton("...");
+        btn.setName(name);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setPreferredSize(new Dimension(38, 28));
+        btn.setForeground(TEXT_PRIMARY);
+        btn.setBackground(BG_INPUT);
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { btn.setBackground(ACCENT); }
+            public void mouseExited(MouseEvent e)  { btn.setBackground(BG_INPUT); }
         });
+        return btn;
+    }
+
+    private JButton createAccentButton(String text) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(ACCENT);
+        btn.setFocusPainted(false);
+        btn.setBorder(new EmptyBorder(6, 16, 6, 16));
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { btn.setBackground(ACCENT_HOVER); }
+            public void mouseExited(MouseEvent e)  { btn.setBackground(ACCENT); }
+        });
+        return btn;
+    }
+
+    private JButton createGradientButton(String text, Color c1, Color c2) {
+        JButton btn = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gp = new GradientPaint(0, 0, c1, getWidth(), 0, c2);
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btn.setContentAreaFilled(false);
+        btn.setOpaque(false);
+        btn.setForeground(Color.WHITE);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        return btn;
+    }
+
+    private GridBagConstraints defaultGbc() {
+        GridBagConstraints g = new GridBagConstraints();
+        g.fill = GridBagConstraints.HORIZONTAL;
+        g.insets = new Insets(5, 6, 5, 6);
+        return g;
+    }
+
+    private void addRow(JPanel panel, GridBagConstraints g, int row, String label, JTextField field, JButton btn) {
+        g.gridx = 0; g.gridy = row; g.weightx = 0;
+        panel.add(styledLabel(label), g);
+        g.gridx = 1; g.weightx = 1.0;
+        panel.add(field, g);
+        g.gridx = 2; g.weightx = 0;
+        panel.add(btn, g);
+    }
+
+    // ============================================================
+    //  ÉVÉNEMENTS
+    // ============================================================
+
+    private void wireEvents() {
+        // Boutons Parcourir (Input et Output liés par nom)
+        // On les retrouve par getName() dans addRow, mais ici on les câble directement
+        // Input browse
+        for (Component c : ((JPanel)getContentPane().getComponent(1)).getComponents()) {
+            // skip - we wire in buildFilesCard children
+        }
 
         btnStart.addActionListener(e -> startProcess());
-
-        // Redirection du flux System.out vers le JTextArea
-        redirectSystemStreams();
-
-        // Initialisations supplémentaires
-        loadPreferences();
-        setupValidation();
-        setupDragAndDrop();
-        setupImagePreviews();
-        
-        // Sauvegarde des préférences à la fermeture
-        this.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-                savePreferences();
-            }
-        });
     }
+
+    private void browseFile(JTextField target) {
+        JFileChooser chooser = new JFileChooser(target.getText());
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            target.setText(chooser.getSelectedFile().getAbsolutePath());
+        }
+    }
+
+    // ============================================================
+    //  PRÉFÉRENCES
+    // ============================================================
 
     private void loadPreferences() {
         txtInput.setText(prefs.get("input", "."));
@@ -268,6 +415,10 @@ public class AutoStepperGUI extends JFrame {
         prefs.putInt("duration", (Integer) spinDuration.getValue());
     }
 
+    // ============================================================
+    //  VALIDATION
+    // ============================================================
+
     private void setupValidation() {
         DocumentListener validator = new DocumentListener() {
             public void insertUpdate(DocumentEvent e) { validateInputs(); }
@@ -279,30 +430,39 @@ public class AutoStepperGUI extends JFrame {
     }
 
     private void validateInputs() {
-        String in = txtInput.getText().trim();
-        btnStart.setEnabled(!in.isEmpty());
+        btnStart.setEnabled(!txtInput.getText().trim().isEmpty());
     }
 
+    // ============================================================
+    //  PRÉVISUALISATIONS
+    // ============================================================
+
     private void setupImagePreviews() {
-        DocumentListener previewListener = new DocumentListener() {
+        DocumentListener pl = new DocumentListener() {
             public void insertUpdate(DocumentEvent e) { updateAllPreviews(); }
             public void removeUpdate(DocumentEvent e) { updateAllPreviews(); }
             public void changedUpdate(DocumentEvent e) { updateAllPreviews(); }
         };
-        txtCustomImage.getDocument().addDocumentListener(previewListener);
-        txtCustomBackground.getDocument().addDocumentListener(previewListener);
+        txtCustomImage.getDocument().addDocumentListener(pl);
+        txtCustomBackground.getDocument().addDocumentListener(pl);
         updateAllPreviews();
     }
 
     private void updateAllPreviews() {
-        updateImagePreview(txtCustomImage.getText(), lblBannerPreview, 100, 30);
-        updateImagePreview(txtCustomBackground.getText(), lblBgPreview, 100, 30);
+        updateImagePreview(txtCustomImage.getText(), lblBannerPreview, 80, 28);
+        updateImagePreview(txtCustomBackground.getText(), lblBgPreview, 80, 28);
     }
 
     private void updateImagePreview(String path, JLabel label, int w, int h) {
         if (path == null || path.trim().isEmpty() || !new File(path).exists()) {
             label.setIcon(null);
-            label.setText("Aucun");
+            label.setText("—");
+            return;
+        }
+        if (path.toLowerCase().endsWith(".mp4")) {
+            label.setIcon(null);
+            label.setText("VIDEO");
+            label.setForeground(ACCENT_GREEN);
             return;
         }
         try {
@@ -310,11 +470,16 @@ public class AutoStepperGUI extends JFrame {
             Image img = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
             label.setIcon(new ImageIcon(img));
             label.setText("");
+            label.setForeground(TEXT_SECONDARY);
         } catch (Exception e) {
             label.setIcon(null);
-            label.setText("Erreur");
+            label.setText("Err");
         }
     }
+
+    // ============================================================
+    //  DRAG & DROP
+    // ============================================================
 
     private void setupDragAndDrop() {
         enableDragAndDrop(txtInput);
@@ -323,18 +488,16 @@ public class AutoStepperGUI extends JFrame {
         enableDragAndDrop(txtCustomBackground);
     }
 
+    @SuppressWarnings("unchecked")
     private void enableDragAndDrop(JTextField textField) {
         textField.setTransferHandler(new TransferHandler() {
-            @Override
-            public boolean canImport(TransferSupport support) {
-                return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
+            public boolean canImport(TransferSupport s) {
+                return s.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
             }
-
-            @Override
-            public boolean importData(TransferSupport support) {
-                if (!canImport(support)) return false;
+            public boolean importData(TransferSupport s) {
+                if (!canImport(s)) return false;
                 try {
-                    Transferable t = support.getTransferable();
+                    Transferable t = s.getTransferable();
                     List<File> files = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
                     if (files != null && files.size() > 0) {
                         String path = files.get(0).getAbsolutePath();
@@ -345,65 +508,72 @@ public class AutoStepperGUI extends JFrame {
                         validateInputs();
                     }
                     return true;
-                } catch (Exception e) {
-                    return false;
-                }
+                } catch (Exception e) { return false; }
             }
         });
     }
+
+    // ============================================================
+    //  DIALOGUE OPTIONS AVANCÉES
+    // ============================================================
 
     private void showAdvancedOptionsDialog() {
         JDialog dialog = new JDialog(this, "Options Avancées", true);
-        dialog.setSize(400, 250);
+        dialog.setSize(420, 280);
         dialog.setLocationRelativeTo(this);
-        
-        JPanel panel = new JPanel(new GridLayout(5, 2, 10, 10));
-        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JTextField txtTitleTranslit = new JTextField(AutoStepper.titleTranslit);
-        JTextField txtSubTitleTranslit = new JTextField(AutoStepper.subTitleTranslit);
-        JTextField txtArtistTranslit = new JTextField(AutoStepper.artistTranslit);
-        JTextField txtGenre = new JTextField(AutoStepper.genre);
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(BG_CARD);
+        panel.setBorder(new EmptyBorder(16, 16, 16, 16));
+        GridBagConstraints g = defaultGbc();
 
-        panel.add(new JLabel("Title Translit:"));
-        panel.add(txtTitleTranslit);
-        panel.add(new JLabel("Subtitle Translit:"));
-        panel.add(txtSubTitleTranslit);
-        panel.add(new JLabel("Artist Translit:"));
-        panel.add(txtArtistTranslit);
-        panel.add(new JLabel("Genre:"));
-        panel.add(txtGenre);
+        JTextField txtTT = styledField(AutoStepper.titleTranslit);
+        JTextField txtST = styledField(AutoStepper.subTitleTranslit);
+        JTextField txtAT = styledField(AutoStepper.artistTranslit);
+        JTextField txtG  = styledField(AutoStepper.genre);
 
-        JButton btnSave = new JButton("Enregistrer");
+        String[] labels = {"Titre Translit", "Sous-titre Translit", "Artiste Translit", "Genre"};
+        JTextField[] fields = {txtTT, txtST, txtAT, txtG};
+        for (int i = 0; i < labels.length; i++) {
+            g.gridx = 0; g.gridy = i; g.weightx = 0;
+            panel.add(styledLabel(labels[i]), g);
+            g.gridx = 1; g.weightx = 1.0;
+            panel.add(fields[i], g);
+        }
+
+        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        btnRow.setOpaque(false);
+
+        JButton btnSave = createAccentButton("Enregistrer");
         btnSave.addActionListener(ev -> {
-            AutoStepper.titleTranslit = txtTitleTranslit.getText();
-            AutoStepper.subTitleTranslit = txtSubTitleTranslit.getText();
-            AutoStepper.artistTranslit = txtArtistTranslit.getText();
-            AutoStepper.genre = txtGenre.getText();
+            AutoStepper.titleTranslit = txtTT.getText();
+            AutoStepper.subTitleTranslit = txtST.getText();
+            AutoStepper.artistTranslit = txtAT.getText();
+            AutoStepper.genre = txtG.getText();
             dialog.dispose();
         });
-        
-        JButton btnCancel = new JButton("Annuler");
+        JButton btnCancel = createBrowseBtn("cancel");
+        btnCancel.setText("Annuler");
+        btnCancel.setPreferredSize(new Dimension(80, 28));
         btnCancel.addActionListener(ev -> dialog.dispose());
 
-        panel.add(btnSave);
-        panel.add(btnCancel);
+        btnRow.add(btnCancel);
+        btnRow.add(btnSave);
+        g.gridx = 0; g.gridy = labels.length; g.gridwidth = 2;
+        panel.add(btnRow, g);
 
-        dialog.add(panel);
+        dialog.setContentPane(panel);
         dialog.setVisible(true);
     }
 
+    // ============================================================
+    //  REDIRECTION DES LOGS
+    // ============================================================
+
     private void redirectSystemStreams() {
         OutputStream out = new OutputStream() {
-            @Override
-            public void write(int b) {
-                updateLog(String.valueOf((char) b));
-            }
-
-            @Override
-            public void write(byte[] b, int off, int len) {
-                updateLog(new String(b, off, len));
-            }
+            public void write(int b) { updateLog(String.valueOf((char) b)); }
+            public void write(byte[] b, int off, int len) { updateLog(new String(b, off, len)); }
         };
         System.setOut(new PrintStream(out, true));
         System.setErr(new PrintStream(out, true));
@@ -416,19 +586,21 @@ public class AutoStepperGUI extends JFrame {
         });
     }
 
+    // ============================================================
+    //  PROCESSUS PRINCIPAL
+    // ============================================================
+
     private void startProcess() {
         btnStart.setEnabled(false);
         logArea.setText("");
-        
-        // Lancement dans un thread séparé pour ne pas bloquer l'UI
+        progressBar.setIndeterminate(true);
+
         new Thread(() -> {
             try {
-                // Initialisation de Minim si nécessaire
                 if (AutoStepper.minim == null) {
                     AutoStepper.minim = new ddf.minim.Minim(AutoStepper.myAS);
                 }
 
-                // Configuration des variables globales de AutoStepper à partir de la GUI
                 AutoStepper.HARDMODE = chkHardMode.isSelected();
                 AutoStepper.customImagePath = txtCustomImage.getText().trim().isEmpty() ? null : txtCustomImage.getText();
                 AutoStepper.customBackgroundPath = txtCustomBackground.getText().trim().isEmpty() ? null : txtCustomBackground.getText();
@@ -436,7 +608,7 @@ public class AutoStepperGUI extends JFrame {
                 String inputPath = txtInput.getText();
                 String outputPath = txtOutput.getText();
 
-                if (outputPath.endsWith("/") == false && outputPath.endsWith("\\") == false) {
+                if (!outputPath.endsWith("/") && !outputPath.endsWith("\\")) {
                     outputPath += "/";
                 }
 
@@ -450,8 +622,8 @@ public class AutoStepperGUI extends JFrame {
                         File[] allfiles = inputFile.listFiles();
                         if (allfiles != null) {
                             for (File f : allfiles) {
-                                String extCheck = f.getName().toLowerCase();
-                                if (f.isFile() && (extCheck.endsWith(".mp3") || extCheck.endsWith(".wav"))) {
+                                String ext = f.getName().toLowerCase();
+                                if (f.isFile() && (ext.endsWith(".mp3") || ext.endsWith(".wav"))) {
                                     AutoStepper.loadMetadata(f.getAbsolutePath());
                                     AutoStepper.myAS.analyzeUsingAudioRecordingStream(f, duration, outputPath);
                                 }
@@ -465,16 +637,24 @@ public class AutoStepperGUI extends JFrame {
                 System.out.println("\n[ERREUR] " + ex.getMessage());
                 ex.printStackTrace();
             } finally {
-                SwingUtilities.invokeLater(() -> btnStart.setEnabled(true));
+                SwingUtilities.invokeLater(() -> {
+                    btnStart.setEnabled(true);
+                    progressBar.setIndeterminate(false);
+                    progressBar.setValue(100);
+                });
             }
         }).start();
     }
 
+    // ============================================================
+    //  LANCEMENT
+    // ============================================================
+
     public static void launch() {
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
         } catch (Exception e) {}
-        
+
         SwingUtilities.invokeLater(() -> {
             AutoStepperGUI gui = new AutoStepperGUI();
             gui.setVisible(true);

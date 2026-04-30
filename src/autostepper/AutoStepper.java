@@ -10,7 +10,6 @@ import ddf.minim.spi.AudioRecordingStream;
 import gnu.trove.list.array.TFloatArrayList;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 /**
  *
@@ -376,8 +375,7 @@ public class AutoStepper {
         if (UPDATESM) {
             File smfile = SMGenerator.getSMFile(filename, outputDir);
             if (smfile.exists()) {
-                try {
-                    BufferedReader br = new BufferedReader(new FileReader(smfile));
+                try (BufferedReader br = new BufferedReader(new FileReader(smfile))) {
                     while (br.ready() && (BPM == 0f || startTime == 0f)) {
                         String line = br.readLine();
                         if (line.contains("#OFFSET:")) {
