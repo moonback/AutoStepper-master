@@ -101,9 +101,20 @@ public class SMGenerator {
 
     public static BufferedWriter GenerateSM(float BPM, float startTime, File songfile, String outputdir) {
         String filename = songfile.getName();
-        String songname = filename.replace(".mp3", " ").replace(".wav", " ").replace(".com", " ").replace(".org", " ")
-                .replace(".info", " ");
-        String shortName = songname.length() > 30 ? songname.substring(0, 30) : songname;
+        String songname = filename.replace(".mp3", "").replace(".wav", "").replace(".MP3", "").replace(".WAV", "");
+        
+        // Tentative de découpage Artiste - Titre si les tags sont vides
+        if (AutoStepper.songTitle.isEmpty() || AutoStepper.songArtist.isEmpty()) {
+            if (songname.contains(" - ")) {
+                String[] parts = songname.split(" - ", 2);
+                if (AutoStepper.songArtist.isEmpty()) AutoStepper.songArtist = parts[0].trim();
+                if (AutoStepper.songTitle.isEmpty()) AutoStepper.songTitle = parts[1].trim();
+            }
+        }
+
+        String finalTitle = (AutoStepper.songTitle != null && !AutoStepper.songTitle.isEmpty()) ? AutoStepper.songTitle : songname;
+        String finalArtist = (AutoStepper.songArtist != null && !AutoStepper.songArtist.isEmpty()) ? AutoStepper.songArtist : "AutoStepper par Maysson.D";
+        
         File dir = new File(outputdir, filename + "_dir/");
         dir.mkdirs();
         File smfile = new File(dir, filename + ".sm");
@@ -162,9 +173,6 @@ public class SMGenerator {
             }
 
             BufferedWriter writer = new BufferedWriter(new FileWriter(smfile));
-            String finalTitle = (AutoStepper.songTitle != null && !AutoStepper.songTitle.isEmpty()) ? AutoStepper.songTitle : shortName;
-            String finalArtist = (AutoStepper.songArtist != null && !AutoStepper.songArtist.isEmpty()) ? AutoStepper.songArtist : "AutoStepper par Maysson.D";
-            
             writer.write(
                     Header.replace("$TITLE", finalTitle)
                             .replace("$ARTIST", finalArtist)

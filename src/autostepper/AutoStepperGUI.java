@@ -21,7 +21,6 @@ public class AutoStepperGUI extends JFrame {
     private JTextField txtCustomBackground;
     private JSpinner spinDuration;
     private JCheckBox chkHardMode;
-    private JCheckBox chkUseTapper;
     private JTextArea logArea;
     private JButton btnStart;
     
@@ -135,11 +134,7 @@ public class AutoStepperGUI extends JFrame {
         chkHardMode = new JCheckBox("Mode Difficile");
         chkHardMode.setBackground(panelBg);
         chkHardMode.setForeground(textColor);
-        chkUseTapper = new JCheckBox("Utiliser Tap Manuel");
-        chkUseTapper.setBackground(panelBg);
-        chkUseTapper.setForeground(textColor);
         optionsPanel.add(chkHardMode);
-        optionsPanel.add(chkUseTapper);
         
         JLabel lblDur = new JLabel("Durée (sec, 0=Tout) :"); lblDur.setForeground(textColor);
         optionsPanel.add(lblDur);
@@ -242,7 +237,6 @@ public class AutoStepperGUI extends JFrame {
         txtCustomImage.setText(prefs.get("customImage", ""));
         txtCustomBackground.setText(prefs.get("customBackground", ""));
         chkHardMode.setSelected(prefs.getBoolean("hardMode", false));
-        chkUseTapper.setSelected(prefs.getBoolean("useTapper", false));
         spinDuration.setValue(prefs.getInt("duration", 0));
     }
 
@@ -252,7 +246,6 @@ public class AutoStepperGUI extends JFrame {
         prefs.put("customImage", txtCustomImage.getText());
         prefs.put("customBackground", txtCustomBackground.getText());
         prefs.putBoolean("hardMode", chkHardMode.isSelected());
-        prefs.putBoolean("useTapper", chkUseTapper.isSelected());
         prefs.putInt("duration", (Integer) spinDuration.getValue());
     }
 
@@ -385,7 +378,6 @@ public class AutoStepperGUI extends JFrame {
 
                 // Configuration des variables globales de AutoStepper à partir de la GUI
                 AutoStepper.HARDMODE = chkHardMode.isSelected();
-                AutoStepper.USETAPPER = chkUseTapper.isSelected();
                 AutoStepper.customImagePath = txtCustomImage.getText().trim().isEmpty() ? null : txtCustomImage.getText();
                 AutoStepper.customBackgroundPath = txtCustomBackground.getText().trim().isEmpty() ? null : txtCustomBackground.getText();
                 float duration = ((Integer) spinDuration.getValue()).floatValue();

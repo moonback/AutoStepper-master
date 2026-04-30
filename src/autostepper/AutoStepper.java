@@ -21,7 +21,7 @@ public class AutoStepper {
     public static boolean DEBUG_STEPS = false;
     public static float MAX_BPM = 170f, MIN_BPM = 70f, BPM_SENSITIVITY = 0.05f, STARTSYNC = 0.0f;
     public static double TAPSYNC = -0.11;
-    public static boolean USETAPPER = false, HARDMODE = false, UPDATESM = false;
+    public static boolean HARDMODE = false, UPDATESM = false;
     public static String customImagePath = null;
     public static String customBackgroundPath = null;
     public static String songTitle = "";
@@ -117,8 +117,6 @@ public class AutoStepper {
         duration = Float.parseFloat(getArg(args, "duration", "90"));
         STARTSYNC = Float.parseFloat(getArg(args, "synctime", "0.0"));
         BPM_SENSITIVITY = Float.parseFloat(getArg(args, "bpmsensitivity", "0.05"));
-        USETAPPER = getArg(args, "tap", "false").equals("true");
-        TAPSYNC = Double.parseDouble(getArg(args, "tapsync", "-0.11"));
         HARDMODE = getArg(args, "hard", "false").equals("true");
         UPDATESM = getArg(args, "updatesm", "false").equals("true");
         File inputFile = new File(input);
@@ -261,46 +259,6 @@ public class AutoStepper {
             common.add(commonBPM);
     }
 
-    public static float tappedOffset;
-
-    public int getTappedBPM(String filename) {
-        // chargement de la chanson complète pour éviter les imprécisions de streaming
-        System.out.println("Chargement de la chanson complète pour le tapage...");
-        AudioSample fullSong = minim.loadSample(filename);
-        System.out.println(
-                "\n********************************************************************\n\nAppuyez sur [ENTRÉE] pour démarrer la chanson, puis sur [ENTRÉE] pour taper en rythme.\nLe processus se terminera après 30 pressions.\nNe vous inquiétez pas de rater le premier battement, commencez n'importe quand.\n\n********************************************************************");
-        TFloatArrayList positions = new TFloatArrayList();
-        Scanner in = new Scanner(System.in);
-        try {
-            in.nextLine();
-        } catch (Exception e) {
-        }
-        // obtenir le temps de début le plus précis possible
-        long nano = System.nanoTime();
-        fullSong.trigger();
-        nano = (System.nanoTime() + nano) / 2;
-        try {
-            for (int i = 0; i < 30; i++) {
-                in.nextLine();
-                // obtenir deux valeurs de temps de jeu et en faire la moyenne pour la précision
-                long now = System.nanoTime();
-                // calculer la différence de temps
-                // on note un délai constant de 0,11 seconde pour l'entrée ici
-                double time = (double) ((now - nano) / 1000000000.0) + TAPSYNC;
-                positions.add((float) time);
-                System.out.println("#" + positions.size() + "/30 : " + time + "s");
-            }
-        } catch (Exception e) {
-        }
-        fullSong.stop();
-        fullSong.close();
-        float avg = ((positions.getQuick(positions.size() - 1) - positions.getQuick(0)) / (positions.size() - 1));
-        int BPM = (int) Math.floor(60f / avg);
-        float timePerBeat = 60f / BPM;
-        tappedOffset = -getBestOffset(timePerBeat, positions, 0.1f);
-        return BPM;
-    }
-
     void analyzeUsingAudioRecordingStream(File filename, float seconds, String outputDir) {
         int fftSize = 512;
 
@@ -409,11 +367,7 @@ public class AutoStepper {
             AddCommonBPMs(common, manyTimes[i], doubleSpeed, timePerSample * 1.5f);
         }
         float BPM = 0f, startTime = 0f, timePerBeat = 0f;
-        if (USETAPPER) {
-            BPM = getTappedBPM(filename.getAbsolutePath());
-            timePerBeat = 60f / BPM;
-            startTime = tappedOffset;
-        } else if (UPDATESM) {
+        if (UPDATESM) {
             File smfile = SMGenerator.getSMFile(filename, outputDir);
             if (smfile.exists()) {
                 try {
@@ -461,6 +415,23 @@ public class AutoStepper {
         }
         System.out.println("Temps par battement : " + timePerBeat + ", BPM : " + BPM);
         System.out.println("Heure de début : " + startTime);
+
+        // --- IA Smart Difficulty Suggestion ---
+        float avgEnergy = 0f;
+        for (int i = 0; i < fewTimes.length; i++) {
+            avgEnergy += fewTimes[i].size();
+        }
+        avgEnergy /= (seconds > 0 ? seconds : 180f); 
+
+        int suggestedRating = Math.round(BPM / 18f) + Math.min(6, Math.round(avgEnergy / 15f));
+        if (HARDMODE) suggestedRating += 2;
+        suggestedRating = Math.max(1, Math.min(15, suggestedRating));
+
+        System.out.println("\n[🤖 IA ANALYSE]");
+        System.out.println(" > BPM Détecté : " + BPM);
+        System.out.println(" > Énergie Rythmique : " + String.format("%.2f", avgEnergy));
+        System.out.println(" > DIFFICULTÉ ESTIMÉE : " + suggestedRating + "/15");
+        System.out.println("----------------------------------------------");
 
         // génération du fichier SM
         BufferedWriter smfile = SMGenerator.GenerateSM(BPM, startTime, filename, outputDir);
