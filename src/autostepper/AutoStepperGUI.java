@@ -23,22 +23,22 @@ import java.util.prefs.Preferences;
 public class AutoStepperGUI extends JFrame {
 
     // --- Palette de couleurs premium ---
-    private static final Color BG_DARK       = new Color(18, 18, 24);
-    private static final Color BG_CARD       = new Color(28, 28, 38);
-    private static final Color BG_INPUT      = new Color(38, 38, 50);
-    private static final Color ACCENT        = new Color(99, 102, 241);   // Indigo
-    private static final Color ACCENT_HOVER  = new Color(129, 132, 255);
-    private static final Color ACCENT_GREEN  = new Color(16, 185, 129);
-    private static final Color ACCENT_GREEN_H= new Color(52, 211, 153);
-    private static final Color TEXT_PRIMARY   = new Color(230, 230, 245);
+    private static final Color BG_DARK = new Color(18, 18, 24);
+    private static final Color BG_CARD = new Color(28, 28, 38);
+    private static final Color BG_INPUT = new Color(38, 38, 50);
+    private static final Color ACCENT = new Color(99, 102, 241); // Indigo
+    private static final Color ACCENT_HOVER = new Color(129, 132, 255);
+    private static final Color ACCENT_GREEN = new Color(16, 185, 129);
+    private static final Color ACCENT_GREEN_H = new Color(52, 211, 153);
+    private static final Color TEXT_PRIMARY = new Color(230, 230, 245);
     private static final Color TEXT_SECONDARY = new Color(148, 148, 168);
-    private static final Color BORDER_COLOR   = new Color(55, 55, 72);
-    private static final Color LOG_GREEN     = new Color(52, 211, 153);
+    private static final Color BORDER_COLOR = new Color(55, 55, 72);
+    private static final Color LOG_GREEN = new Color(52, 211, 153);
 
     // --- Composants ---
     private JTextField txtInput, txtOutput, txtCustomImage, txtCustomBackground;
     private JSpinner spinDuration;
-    private JCheckBox chkHardMode;
+    private JCheckBox chkHardMode, chkSmartMines, chkDetectSilence, chkVariableBPM;
     private JTextArea logArea;
     private JButton btnStart;
     private JLabel lblBannerPreview, lblBgPreview;
@@ -55,41 +55,72 @@ public class AutoStepperGUI extends JFrame {
         File file;
         String customBanner = "";
         String customBG = "";
-        SongEntry(File f) { this.file = f; }
-        @Override public String toString() { return file.getName(); }
+
+        SongEntry(File f) {
+            this.file = f;
+        }
+
+        @Override
+        public String toString() {
+            return file.getName();
+        }
     }
 
     private class SongTableModel extends javax.swing.table.AbstractTableModel {
         private java.util.ArrayList<SongEntry> entries = new java.util.ArrayList<>();
-        private String[] columnNames = {"Musique", "Bannière", "Fond / Vidéo"};
+        private String[] columnNames = { "Musique", "Bannière", "Fond / Vidéo" };
 
         public void setEntries(java.util.List<File> files) {
             entries.clear();
-            for (File f : files) entries.add(new SongEntry(f));
+            for (File f : files)
+                entries.add(new SongEntry(f));
             fireTableDataChanged();
         }
 
-        public SongEntry getEntry(int row) { return (row >= 0 && row < entries.size()) ? entries.get(row) : null; }
-        public java.util.List<SongEntry> getEntries() { return entries; }
+        public SongEntry getEntry(int row) {
+            return (row >= 0 && row < entries.size()) ? entries.get(row) : null;
+        }
 
-        @Override public int getRowCount() { return entries.size(); }
-        @Override public int getColumnCount() { return columnNames.length; }
-        @Override public String getColumnName(int col) { return columnNames[col]; }
-        @Override public Object getValueAt(int row, int col) {
+        public java.util.List<SongEntry> getEntries() {
+            return entries;
+        }
+
+        @Override
+        public int getRowCount() {
+            return entries.size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return columnNames.length;
+        }
+
+        @Override
+        public String getColumnName(int col) {
+            return columnNames[col];
+        }
+
+        @Override
+        public Object getValueAt(int row, int col) {
             SongEntry e = entries.get(row);
-            switch(col) {
-                case 0: return e.file.getName();
-                case 1: return e.customBanner.isEmpty() ? "(Auto)" : new File(e.customBanner).getName();
-                case 2: return e.customBG.isEmpty() ? "(Auto)" : new File(e.customBG).getName();
-                default: return "";
+            switch (col) {
+                case 0:
+                    return e.file.getName();
+                case 1:
+                    return e.customBanner.isEmpty() ? "(Auto)" : new File(e.customBanner).getName();
+                case 2:
+                    return e.customBG.isEmpty() ? "(Auto)" : new File(e.customBG).getName();
+                default:
+                    return "";
             }
         }
     }
 
     public AutoStepperGUI() {
-        setTitle("AutoStepper v1.7");
+        setTitle("AutoStepper v1.8");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(860, 800);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLocationRelativeTo(null);
         setMinimumSize(new Dimension(760, 680));
 
@@ -110,8 +141,8 @@ public class AutoStepperGUI extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(ACCENT);
-                int[] px = {0, 12, 8, 18, 6, 10, 0};
-                int[] py = {10, 10, 18, 18, 30, 30, 20};
+                int[] px = { 0, 12, 8, 18, 6, 10, 0 };
+                int[] py = { 10, 10, 18, 18, 30, 30, 20 };
                 g2.fillPolygon(px, py, 7);
                 g2.dispose();
                 g.translate(24, 0);
@@ -122,7 +153,7 @@ public class AutoStepperGUI extends JFrame {
         lblTitle.setForeground(TEXT_PRIMARY);
         header.add(lblTitle, BorderLayout.WEST);
 
-        JLabel lblSub = new JLabel("v1.7  —  par Maysson.D  ");
+        JLabel lblSub = new JLabel("v1.8  —  par Maysson.D  ");
         lblSub.setFont(new Font("Segoe UI", Font.ITALIC, 14));
         lblSub.setForeground(TEXT_SECONDARY);
         lblSub.setBorder(new EmptyBorder(12, 0, 0, 0));
@@ -133,7 +164,7 @@ public class AutoStepperGUI extends JFrame {
         // ====== CENTRE (config + logs) ======
         JPanel center = new JPanel(new BorderLayout(0, 12));
         center.setOpaque(false);
-        
+
         // --- Zone de configuration scrollable ---
         JPanel configArea = new JPanel();
         configArea.setLayout(new BoxLayout(configArea, BoxLayout.Y_AXIS));
@@ -160,7 +191,7 @@ public class AutoStepperGUI extends JFrame {
         scrollConfig.getViewport().setOpaque(false);
         scrollConfig.getVerticalScrollBar().setUnitIncrement(16);
         scrollConfig.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        
+
         center.add(scrollConfig, BorderLayout.CENTER);
 
         root.add(center, BorderLayout.CENTER);
@@ -176,7 +207,7 @@ public class AutoStepperGUI extends JFrame {
         progressBar.setBorderPainted(false);
         progressBar.setBackground(BG_CARD);
         progressBar.setForeground(ACCENT_GREEN);
-        
+
         // Journal en bas réduit pour laisser place au scroll
         logArea = new JTextArea();
         logArea.setEditable(false);
@@ -184,20 +215,20 @@ public class AutoStepperGUI extends JFrame {
         logArea.setForeground(LOG_GREEN);
         logArea.setFont(new Font("Consolas", Font.PLAIN, 11));
         logArea.setMargin(new java.awt.Insets(8, 8, 8, 8));
-        
+
         JScrollPane scrollLog = new JScrollPane(logArea);
         scrollLog.setBorder(null);
         scrollLog.setPreferredSize(new Dimension(0, 120));
-        
+
         JPanel bottomArea = new JPanel(new BorderLayout(0, 5));
         bottomArea.setOpaque(false);
         bottomArea.add(progressBar, BorderLayout.NORTH);
         bottomArea.add(scrollLog, BorderLayout.CENTER);
-        
+
         btnStart = createGradientButton("DÉMARRER LA GÉNÉRATION DES STEPS", ACCENT_GREEN, ACCENT_GREEN_H);
         btnStart.setPreferredSize(new Dimension(0, 56));
         btnStart.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        
+
         JButton btnReset = new JButton("Réinitialiser Tout");
         // ... (styles already set or will be merged)
         btnReset.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -208,12 +239,27 @@ public class AutoStepperGUI extends JFrame {
         btnReset.setPreferredSize(new Dimension(140, 56));
         btnReset.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnReset.addActionListener(e -> resetAll());
-        
+
+        JButton btnHelp = new JButton("Aide & Notice");
+        btnHelp.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnHelp.setForeground(TEXT_PRIMARY);
+        btnHelp.setBackground(new Color(59, 130, 246)); // Bleu
+        btnHelp.setFocusPainted(false);
+        btnHelp.setBorder(BorderFactory.createLineBorder(new Color(37, 99, 235)));
+        btnHelp.setPreferredSize(new Dimension(140, 56));
+        btnHelp.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnHelp.addActionListener(e -> showHelpDialog());
+
+        JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        leftActions.setOpaque(false);
+        leftActions.add(btnReset);
+        leftActions.add(btnHelp);
+
         JPanel actionPanel = new JPanel(new BorderLayout(10, 0));
         actionPanel.setOpaque(false);
-        actionPanel.add(btnReset, BorderLayout.WEST);
+        actionPanel.add(leftActions, BorderLayout.WEST);
         actionPanel.add(btnStart, BorderLayout.CENTER);
-        
+
         bottomArea.add(actionPanel, BorderLayout.SOUTH);
         root.add(bottomArea, BorderLayout.SOUTH);
 
@@ -226,12 +272,14 @@ public class AutoStepperGUI extends JFrame {
         setupImagePreviews();
 
         addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) { savePreferences(); }
+            public void windowClosing(WindowEvent e) {
+                savePreferences();
+            }
         });
     }
 
     // ============================================================
-    //  CONSTRUCTION DES CARTES
+    // CONSTRUCTION DES CARTES
     // ============================================================
 
     private JPanel buildFilesCard() {
@@ -248,7 +296,7 @@ public class AutoStepperGUI extends JFrame {
         txtOutput.setToolTipText("Dossier où sera créé le pack StepMania");
 
         addRow(card, g, 0, "Musique / Dossier", txtInput, btnIn);
-        addRow(card, g, 1, "Dossier de sortie",  txtOutput, btnOut);
+        addRow(card, g, 1, "Dossier de sortie", txtOutput, btnOut);
 
         btnIn.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser(txtInput.getText());
@@ -272,9 +320,17 @@ public class AutoStepperGUI extends JFrame {
 
         // Auto-scan on path change
         txtInput.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { scanInput(); }
-            public void removeUpdate(DocumentEvent e) { scanInput(); }
-            public void changedUpdate(DocumentEvent e) { scanInput(); }
+            public void insertUpdate(DocumentEvent e) {
+                scanInput();
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                scanInput();
+            }
+
+            public void changedUpdate(DocumentEvent e) {
+                scanInput();
+            }
         });
 
         return card;
@@ -296,9 +352,10 @@ public class AutoStepperGUI extends JFrame {
         songTable.getTableHeader().setBackground(BG_CARD);
         songTable.getTableHeader().setForeground(ACCENT);
         songTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        
+
         songTable.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) updateVisualCardFromSelection();
+            if (!e.getValueIsAdjusting())
+                updateVisualCardFromSelection();
         });
 
         JScrollPane scroll = new JScrollPane(songTable);
@@ -318,7 +375,8 @@ public class AutoStepperGUI extends JFrame {
 
     private void scanInput() {
         String path = txtInput.getText().trim();
-        if (path.isEmpty()) return;
+        if (path.isEmpty())
+            return;
         File f = new File(path);
         java.util.ArrayList<File> found = new java.util.ArrayList<>();
         if (f.isFile() && (path.toLowerCase().endsWith(".mp3") || path.toLowerCase().endsWith(".wav"))) {
@@ -327,14 +385,16 @@ public class AutoStepperGUI extends JFrame {
             File[] files = f.listFiles();
             if (files != null) {
                 for (File sub : files) {
-                    if (sub.isFile() && (sub.getName().toLowerCase().endsWith(".mp3") || sub.getName().toLowerCase().endsWith(".wav"))) {
+                    if (sub.isFile() && (sub.getName().toLowerCase().endsWith(".mp3")
+                            || sub.getName().toLowerCase().endsWith(".wav"))) {
                         found.add(sub);
                     }
                 }
             }
         }
         songTableModel.setEntries(found);
-        if (found.size() > 0) songTable.setRowSelectionInterval(0, 0);
+        if (found.size() > 0)
+            songTable.setRowSelectionInterval(0, 0);
     }
 
     private void updateVisualCardFromSelection() {
@@ -345,7 +405,7 @@ public class AutoStepperGUI extends JFrame {
             txtCustomBackground.setText(entry.customBG);
             updateDropZonePreview(entry.customBanner, lblBannerPreview, "Bannière Spécifique");
             updateDropZonePreview(entry.customBG, lblBgPreview, "Fond Spécifique");
-            
+
             // Mettre à jour le lecteur audio
             waveformPanel.setSong(entry.file);
         }
@@ -363,8 +423,10 @@ public class AutoStepperGUI extends JFrame {
         lblBannerPreview = new JLabel();
         lblBgPreview = new JLabel();
 
-        JPanel dropBanner = createDropZone("\uD83D\uDDBC\uFE0F Bannière", "Glissez une image ici", txtCustomImage, lblBannerPreview);
-        JPanel dropBg = createDropZone("\uD83C\uDFA8 Fond / Vidéo", "Glissez une image ou vidéo ici", txtCustomBackground, lblBgPreview);
+        JPanel dropBanner = createDropZone("\uD83D\uDDBC\uFE0F Bannière", "Glissez une image ici", txtCustomImage,
+                lblBannerPreview);
+        JPanel dropBg = createDropZone("\uD83C\uDFA8 Fond / Vidéo", "Glissez une image ou vidéo ici",
+                txtCustomBackground, lblBgPreview);
 
         dropZones.add(dropBanner);
         dropZones.add(dropBg);
@@ -379,18 +441,19 @@ public class AutoStepperGUI extends JFrame {
         audioPanel.add(waveformPanel, BorderLayout.CENTER);
 
         btnPlay = new JButton("\u25B6") {
-            @Override protected void paintComponent(Graphics g) {
+            @Override
+            protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(currentPlayer != null && currentPlayer.isPlaying() ? ACCENT_GREEN : ACCENT);
-                g2.fillOval(4, 4, getWidth()-8, getHeight()-8);
+                g2.fillOval(4, 4, getWidth() - 8, getHeight() - 8);
                 g2.setColor(Color.WHITE);
                 if (currentPlayer != null && currentPlayer.isPlaying()) {
-                    g2.fillRect(getHeight()/2 - 6, getHeight()/2 - 8, 4, 16);
-                    g2.fillRect(getHeight()/2 + 2, getHeight()/2 - 8, 4, 16);
+                    g2.fillRect(getHeight() / 2 - 6, getHeight() / 2 - 8, 4, 16);
+                    g2.fillRect(getHeight() / 2 + 2, getHeight() / 2 - 8, 4, 16);
                 } else {
-                    int[] px = {getHeight()/2 - 4, getHeight()/2 - 4, getHeight()/2 + 8};
-                    int[] py = {getHeight()/2 - 8, getHeight()/2 + 8, getHeight()/2};
+                    int[] px = { getHeight() / 2 - 4, getHeight() / 2 - 4, getHeight() / 2 + 8 };
+                    int[] py = { getHeight() / 2 - 8, getHeight() / 2 + 8, getHeight() / 2 };
                     g2.fillPolygon(px, py, 3);
                 }
                 g2.dispose();
@@ -402,7 +465,7 @@ public class AutoStepperGUI extends JFrame {
         btnPlay.setContentAreaFilled(false);
         btnPlay.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnPlay.addActionListener(e -> togglePlay());
-        
+
         audioPanel.add(btnPlay, BorderLayout.WEST);
         card.add(audioPanel, BorderLayout.CENTER);
 
@@ -410,7 +473,7 @@ public class AutoStepperGUI extends JFrame {
     }
 
     private class WaveformPanel extends JPanel {
-        private float[] energyHistory;  // RMS energy accumulated over time
+        private float[] energyHistory; // RMS energy accumulated over time
         private int energyWriteIndex = 0;
         private Timer animTimer;
 
@@ -424,33 +487,38 @@ public class AutoStepperGUI extends JFrame {
         }
 
         private void captureEnergy() {
-            if (currentPlayer == null || !currentPlayer.isPlaying()) return;
-            if (energyHistory == null || currentPlayer.length() <= 0) return;
-            
+            if (currentPlayer == null || !currentPlayer.isPlaying())
+                return;
+            if (energyHistory == null || currentPlayer.length() <= 0)
+                return;
+
             // Map current position to a slot in the history array
             float progress = (float) currentPlayer.position() / currentPlayer.length();
             int slot = (int) (progress * energyHistory.length);
-            if (slot < 0) slot = 0;
-            if (slot >= energyHistory.length) slot = energyHistory.length - 1;
-            
+            if (slot < 0)
+                slot = 0;
+            if (slot >= energyHistory.length)
+                slot = energyHistory.length - 1;
+
             // Calculate RMS from the live mix buffer
             float rms = currentPlayer.mix.level();
             energyHistory[slot] = Math.max(energyHistory[slot], rms);
         }
 
         public void setSong(File file) {
-            if (file == null || !file.exists()) return;
-            
+            if (file == null || !file.exists())
+                return;
+
             if (currentPlayer != null) {
                 currentPlayer.close();
                 currentPlayer = null;
             }
-            
+
             // Reset waveform history
             energyHistory = new float[600];
-            
+
             System.out.println("Lecture de l'aperçu : " + file.getName());
-            
+
             new Thread(() -> {
                 try {
                     if (AutoStepper.minim == null) {
@@ -458,7 +526,7 @@ public class AutoStepperGUI extends JFrame {
                     }
                     currentPlayer = AutoStepper.minim.loadFile(file.getAbsolutePath(), 1024);
                     System.out.println("Audio chargé (" + (currentPlayer.length() / 1000) + "s).");
-                    
+
                     SwingUtilities.invokeLater(() -> {
                         animTimer.start();
                         repaint();
@@ -473,32 +541,34 @@ public class AutoStepperGUI extends JFrame {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
+
             int w = getWidth();
             int h = getHeight();
             int mid = h / 2;
-            
+
             // Background rounded
             g2.setColor(BG_INPUT);
             g2.fillRoundRect(0, 0, w, h, 12, 12);
-            
+
             if (currentPlayer != null) {
                 // --- Draw accumulated energy history as waveform bars ---
                 if (energyHistory != null) {
                     float step = (float) energyHistory.length / w;
                     for (int x = 0; x < w; x++) {
                         int idx = (int) (x * step);
-                        if (idx >= energyHistory.length) idx = energyHistory.length - 1;
+                        if (idx >= energyHistory.length)
+                            idx = energyHistory.length - 1;
                         float val = energyHistory[idx];
                         if (val > 0) {
                             int amp = (int) (val * mid * 2.5f);
-                            if (amp > mid - 2) amp = mid - 2;
+                            if (amp > mid - 2)
+                                amp = mid - 2;
                             g2.setColor(ACCENT.darker());
                             g2.drawLine(x, mid - amp, x, mid + amp);
                         }
                     }
                 }
-                
+
                 // --- Draw live oscilloscope from current buffer ---
                 if (currentPlayer.isPlaying()) {
                     float[] mixBuf = currentPlayer.mix.toArray();
@@ -508,14 +578,16 @@ public class AutoStepperGUI extends JFrame {
                     int prevY = mid;
                     for (int x = 0; x < w; x++) {
                         int bufIdx = (int) ((float) x / w * bufLen);
-                        if (bufIdx >= bufLen) bufIdx = bufLen - 1;
+                        if (bufIdx >= bufLen)
+                            bufIdx = bufLen - 1;
                         int y = mid - (int) (mixBuf[bufIdx] * mid * 0.9f);
-                        if (x > 0) g2.drawLine(x - 1, prevY, x, y);
+                        if (x > 0)
+                            g2.drawLine(x - 1, prevY, x, y);
                         prevY = y;
                     }
                     g2.setStroke(new BasicStroke(1f));
                 }
-                
+
                 // --- Playhead ---
                 float progress = (float) currentPlayer.position() / Math.max(1, currentPlayer.length());
                 int px = (int) (progress * w);
@@ -523,15 +595,15 @@ public class AutoStepperGUI extends JFrame {
                 g2.setStroke(new BasicStroke(2f));
                 g2.drawLine(px, 2, px, h - 2);
                 g2.setStroke(new BasicStroke(1f));
-                
+
                 // --- Time label ---
                 int posSec = currentPlayer.position() / 1000;
                 int lenSec = currentPlayer.length() / 1000;
-                String timeStr = String.format("%d:%02d / %d:%02d", posSec/60, posSec%60, lenSec/60, lenSec%60);
+                String timeStr = String.format("%d:%02d / %d:%02d", posSec / 60, posSec % 60, lenSec / 60, lenSec % 60);
                 g2.setFont(new Font("Segoe UI", Font.BOLD, 10));
                 g2.setColor(TEXT_SECONDARY);
                 g2.drawString(timeStr, w - 90, h - 6);
-                
+
                 // --- Step arrows preview ---
                 if (currentPlayer.isPlaying()) {
                     drawStepPreview(g2, px, mid);
@@ -541,23 +613,66 @@ public class AutoStepperGUI extends JFrame {
                 g2.setFont(new Font("Segoe UI", Font.ITALIC, 12));
                 g2.drawString("Sélectionnez une musique puis appuyez sur ▶", 20, mid + 5);
             }
-            
+
             // Center line
             g2.setColor(new Color(255, 255, 255, 30));
             g2.drawLine(0, mid, w, mid);
-            
+
             g2.dispose();
         }
 
         private void drawStepPreview(Graphics2D g2, int px, int mid) {
-            g2.setFont(new Font("Segoe UI", Font.BOLD, 16));
-            String[] arrows = {"←", "↓", "↑", "→"};
-            Color[] colors = {ACCENT, ACCENT_GREEN, new Color(239, 68, 68), ACCENT_HOVER};
-            long tick = System.currentTimeMillis() / 120;
+            g2.setFont(new Font("Segoe UI", Font.BOLD, 22));
+            String[] arrows = { "←", "↓", "↑", "→" };
+            Color[] colors = {
+                    new Color(239, 68, 68), // Gauche: Rouge
+                    new Color(59, 130, 246), // Bas: Bleu
+                    new Color(16, 185, 129), // Haut: Vert
+                    new Color(245, 158, 11) // Droite: Orange
+            };
+
+            // Empêcher l'affichage de sortir de l'écran à droite
+            int startX = px + 20;
+            if (startX > getWidth() - 110)
+                startX = px - 110;
+
+            long time = System.currentTimeMillis();
+            float audioLevel = currentPlayer.mix.level() * 5f; // Amplification pour l'effet visuel
+
             for (int i = 0; i < 4; i++) {
-                if ((tick + i) % 4 == 0) {
-                    g2.setColor(colors[i]);
-                    g2.drawString(arrows[i], px + 8 + (i * 18), mid + 5);
+                int ax = startX + (i * 24);
+                int ay = mid + 5; // Position de la cible
+
+                // 1. Dessiner les cibles "fantômes"
+                g2.setColor(new Color(255, 255, 255, 40));
+                g2.drawString(arrows[i], ax, ay);
+
+                // 2. Simuler une note défilante
+                double speed = 0.12; // Vitesse réduite pour une meilleure lisibilité
+                int distance = 180; // Distance totale de parcours
+
+                // Décalage pour chaque flèche pour éviter qu'elles arrivent toutes en même
+                // temps
+                int scrollY = (int) ((time * speed + (i * 45)) % distance);
+                int noteY = (mid + (distance / 2)) - scrollY; // La note monte
+
+                // 3. Effet de Hit / Flash
+                if (Math.abs(noteY - ay) < 15 && audioLevel > 0.3f) {
+                    // Lueur d'impact
+                    g2.setColor(new Color(colors[i].getRed(), colors[i].getGreen(), colors[i].getBlue(),
+                            100 + (int) (Math.min(1f, audioLevel) * 100)));
+                    g2.fillRoundRect(ax - 2, ay - 20, 24, 24, 8, 8);
+
+                    // Flèche blanche éclatante
+                    g2.setColor(Color.WHITE);
+                    g2.drawString(arrows[i], ax, ay);
+                }
+                // 4. Dessiner la note seulement si elle n'a pas encore dépassé la cible de trop
+                else if (noteY >= ay - 15) {
+                    // Fondu en approche
+                    int alpha = Math.min(255, Math.max(0, (noteY - (ay - 15)) * 8));
+                    g2.setColor(new Color(colors[i].getRed(), colors[i].getGreen(), colors[i].getBlue(), alpha));
+                    g2.drawString(arrows[i], ax, noteY);
                 }
             }
         }
@@ -625,9 +740,11 @@ public class AutoStepperGUI extends JFrame {
                     setHovering(ok);
                     return ok;
                 }
+
                 public boolean importData(TransferSupport s) {
                     try {
-                        List<File> files = (List<File>) s.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                        List<File> files = (List<File>) s.getTransferable()
+                                .getTransferData(DataFlavor.javaFileListFlavor);
                         if (files != null && !files.isEmpty()) {
                             String path = files.get(0).getAbsolutePath();
                             field.setText(path);
@@ -636,14 +753,27 @@ public class AutoStepperGUI extends JFrame {
                         }
                         setHovering(false);
                         return true;
-                    } catch (Exception e) { return false; }
+                    } catch (Exception e) {
+                        return false;
+                    }
                 }
             });
 
             field.getDocument().addDocumentListener(new DocumentListener() {
-                public void insertUpdate(DocumentEvent e) { updateEntryFromField(); updateDropZonePreview(field.getText(), preview, hint); }
-                public void removeUpdate(DocumentEvent e) { updateEntryFromField(); updateDropZonePreview(field.getText(), preview, hint); }
-                public void changedUpdate(DocumentEvent e) { updateEntryFromField(); updateDropZonePreview(field.getText(), preview, hint); }
+                public void insertUpdate(DocumentEvent e) {
+                    updateEntryFromField();
+                    updateDropZonePreview(field.getText(), preview, hint);
+                }
+
+                public void removeUpdate(DocumentEvent e) {
+                    updateEntryFromField();
+                    updateDropZonePreview(field.getText(), preview, hint);
+                }
+
+                public void changedUpdate(DocumentEvent e) {
+                    updateEntryFromField();
+                    updateDropZonePreview(field.getText(), preview, hint);
+                }
             });
         }
 
@@ -658,7 +788,7 @@ public class AutoStepperGUI extends JFrame {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(hovering ? new Color(99, 102, 241, 25) : BG_INPUT);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-            float[] dash = {6f, 4f};
+            float[] dash = { 6f, 4f };
             g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10f, dash, 0f));
             g2.setColor(hovering ? ACCENT : BORDER_COLOR);
             g2.drawRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 14, 14);
@@ -671,7 +801,8 @@ public class AutoStepperGUI extends JFrame {
     }
 
     private void updateEntryFromField() {
-        if (songTable == null || songTableModel == null) return;
+        if (songTable == null || songTableModel == null)
+            return;
         int row = songTable.getSelectedRow();
         SongEntry entry = songTableModel.getEntry(row);
         if (entry != null) {
@@ -708,15 +839,20 @@ public class AutoStepperGUI extends JFrame {
     }
 
     private JPanel buildOptionsCard() {
-        JPanel card = createCard("Options de Génération");
+        JPanel card = createCard("Options de Génération & Algorithme");
         card.setLayout(new FlowLayout(FlowLayout.LEFT, 16, 8));
 
-        chkHardMode = new JCheckBox("Mode Difficile");
-        chkHardMode.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        chkHardMode.setForeground(TEXT_PRIMARY);
-        chkHardMode.setBackground(BG_CARD);
-        chkHardMode.setFocusPainted(false);
+        chkHardMode = createStyledCheckBox("Mode Difficile");
         card.add(chkHardMode);
+
+        chkSmartMines = createStyledCheckBox("Mines Intelligentes (Énergie)");
+        card.add(chkSmartMines);
+
+        chkDetectSilence = createStyledCheckBox("Couper les Silences");
+        card.add(chkDetectSilence);
+
+        chkVariableBPM = createStyledCheckBox("BPM Variable (Expérimental)");
+        card.add(chkVariableBPM);
 
         card.add(styledLabel("Durée (0 = Tout) :"));
         spinDuration = new JSpinner(new SpinnerNumberModel(0, 0, 3600, 10));
@@ -724,15 +860,20 @@ public class AutoStepperGUI extends JFrame {
         spinDuration.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         card.add(spinDuration);
 
-        JButton btnAdv = createAccentButton("Options Avancées");
-        btnAdv.addActionListener(e -> showAdvancedOptionsDialog());
-        card.add(btnAdv);
-
         return card;
     }
 
+    private JCheckBox createStyledCheckBox(String text) {
+        JCheckBox chk = new JCheckBox(text);
+        chk.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        chk.setForeground(TEXT_PRIMARY);
+        chk.setBackground(BG_CARD);
+        chk.setFocusPainted(false);
+        return chk;
+    }
+
     // ============================================================
-    //  COMPOSANTS RÉUTILISABLES
+    // COMPOSANTS RÉUTILISABLES
     // ============================================================
 
     private JPanel createCard(String title) {
@@ -791,8 +932,13 @@ public class AutoStepperGUI extends JFrame {
         btn.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) { btn.setBackground(ACCENT); }
-            public void mouseExited(MouseEvent e)  { btn.setBackground(BG_INPUT); }
+            public void mouseEntered(MouseEvent e) {
+                btn.setBackground(ACCENT);
+            }
+
+            public void mouseExited(MouseEvent e) {
+                btn.setBackground(BG_INPUT);
+            }
         });
         return btn;
     }
@@ -806,8 +952,13 @@ public class AutoStepperGUI extends JFrame {
         btn.setBorder(new EmptyBorder(6, 16, 6, 16));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) { btn.setBackground(ACCENT_HOVER); }
-            public void mouseExited(MouseEvent e)  { btn.setBackground(ACCENT); }
+            public void mouseEntered(MouseEvent e) {
+                btn.setBackground(ACCENT_HOVER);
+            }
+
+            public void mouseExited(MouseEvent e) {
+                btn.setBackground(ACCENT);
+            }
         });
         return btn;
     }
@@ -843,23 +994,27 @@ public class AutoStepperGUI extends JFrame {
     }
 
     private void addRow(JPanel panel, GridBagConstraints g, int row, String label, JTextField field, JButton btn) {
-        g.gridx = 0; g.gridy = row; g.weightx = 0;
+        g.gridx = 0;
+        g.gridy = row;
+        g.weightx = 0;
         panel.add(styledLabel(label), g);
-        g.gridx = 1; g.weightx = 1.0;
+        g.gridx = 1;
+        g.weightx = 1.0;
         panel.add(field, g);
-        g.gridx = 2; g.weightx = 0;
+        g.gridx = 2;
+        g.weightx = 0;
         panel.add(btn, g);
     }
 
     // ============================================================
-    //  ÉVÉNEMENTS
+    // ÉVÉNEMENTS
     // ============================================================
 
     private void wireEvents() {
         // Boutons Parcourir (Input et Output liés par nom)
         // On les retrouve par getName() dans addRow, mais ici on les câble directement
         // Input browse
-        for (Component c : ((JPanel)getContentPane().getComponent(1)).getComponents()) {
+        for (Component c : ((JPanel) getContentPane().getComponent(1)).getComponents()) {
             // skip - we wire in buildFilesCard children
         }
 
@@ -875,7 +1030,7 @@ public class AutoStepperGUI extends JFrame {
     }
 
     // ============================================================
-    //  PRÉFÉRENCES
+    // PRÉFÉRENCES
     // ============================================================
 
     private void loadPreferences() {
@@ -884,6 +1039,9 @@ public class AutoStepperGUI extends JFrame {
         txtCustomImage.setText(prefs.get("customImage", ""));
         txtCustomBackground.setText(prefs.get("customBackground", ""));
         chkHardMode.setSelected(prefs.getBoolean("hardMode", false));
+        chkSmartMines.setSelected(prefs.getBoolean("smartMines", true));
+        chkDetectSilence.setSelected(prefs.getBoolean("detectSilence", true));
+        chkVariableBPM.setSelected(prefs.getBoolean("variableBPM", true));
         spinDuration.setValue(prefs.getInt("duration", 0));
     }
 
@@ -893,18 +1051,29 @@ public class AutoStepperGUI extends JFrame {
         prefs.put("customImage", txtCustomImage.getText());
         prefs.put("customBackground", txtCustomBackground.getText());
         prefs.putBoolean("hardMode", chkHardMode.isSelected());
+        prefs.putBoolean("smartMines", chkSmartMines.isSelected());
+        prefs.putBoolean("detectSilence", chkDetectSilence.isSelected());
+        prefs.putBoolean("variableBPM", chkVariableBPM.isSelected());
         prefs.putInt("duration", (Integer) spinDuration.getValue());
     }
 
     // ============================================================
-    //  VALIDATION
+    // VALIDATION
     // ============================================================
 
     private void setupValidation() {
         DocumentListener validator = new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { validateInputs(); }
-            public void removeUpdate(DocumentEvent e) { validateInputs(); }
-            public void changedUpdate(DocumentEvent e) { validateInputs(); }
+            public void insertUpdate(DocumentEvent e) {
+                validateInputs();
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                validateInputs();
+            }
+
+            public void changedUpdate(DocumentEvent e) {
+                validateInputs();
+            }
         };
         txtInput.getDocument().addDocumentListener(validator);
         validateInputs();
@@ -915,7 +1084,7 @@ public class AutoStepperGUI extends JFrame {
     }
 
     // ============================================================
-    //  PRÉVISUALISATIONS
+    // PRÉVISUALISATIONS
     // ============================================================
 
     private void setupImagePreviews() {
@@ -925,7 +1094,7 @@ public class AutoStepperGUI extends JFrame {
     }
 
     // ============================================================
-    //  DRAG & DROP
+    // DRAG & DROP
     // ============================================================
 
     private void setupDragAndDrop() {
@@ -940,49 +1109,57 @@ public class AutoStepperGUI extends JFrame {
         textField.setTransferHandler(new TransferHandler() {
             public boolean canImport(TransferSupport s) {
                 boolean ok = s.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
-                if (ok) textField.setBorder(BorderFactory.createLineBorder(ACCENT, 2));
+                if (ok)
+                    textField.setBorder(BorderFactory.createLineBorder(ACCENT, 2));
                 return ok;
             }
+
             @Override
             protected void exportDone(JComponent source, Transferable data, int action) {
                 textField.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(BORDER_COLOR),
-                    new EmptyBorder(5, 8, 5, 8)));
+                        BorderFactory.createLineBorder(BORDER_COLOR),
+                        new EmptyBorder(5, 8, 5, 8)));
             }
+
             public boolean importData(TransferSupport s) {
                 textField.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(BORDER_COLOR),
-                    new EmptyBorder(5, 8, 5, 8)));
-                if (!canImport(s)) return false;
+                        BorderFactory.createLineBorder(BORDER_COLOR),
+                        new EmptyBorder(5, 8, 5, 8)));
+                if (!canImport(s))
+                    return false;
                 try {
                     Transferable t = s.getTransferable();
                     List<File> files = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
                     if (files != null && files.size() > 0) {
                         String path = files.get(0).getAbsolutePath();
                         textField.setText(path);
-                        if (textField == txtInput && (path.toLowerCase().endsWith(".mp3") || path.toLowerCase().endsWith(".wav"))) {
+                        if (textField == txtInput
+                                && (path.toLowerCase().endsWith(".mp3") || path.toLowerCase().endsWith(".wav"))) {
                             AutoStepper.loadMetadata(path);
                         }
                         validateInputs();
                     }
                     return true;
-                } catch (Exception e) { return false; }
+                } catch (Exception e) {
+                    return false;
+                }
             }
         });
-        
-        // Reset border on drag exit is tricky with TransferHandler alone, adding listener
+
+        // Reset border on drag exit is tricky with TransferHandler alone, adding
+        // listener
         textField.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseExited(MouseEvent e) {
                 textField.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(BORDER_COLOR),
-                    new EmptyBorder(5, 8, 5, 8)));
+                        BorderFactory.createLineBorder(BORDER_COLOR),
+                        new EmptyBorder(5, 8, 5, 8)));
             }
         });
     }
 
     // ============================================================
-    //  DIALOGUE OPTIONS AVANCÉES
+    // DIALOGUE OPTIONS AVANCÉES
     // ============================================================
 
     private void showAdvancedOptionsDialog() {
@@ -998,14 +1175,17 @@ public class AutoStepperGUI extends JFrame {
         JTextField txtTT = styledField(AutoStepper.titleTranslit);
         JTextField txtST = styledField(AutoStepper.subTitleTranslit);
         JTextField txtAT = styledField(AutoStepper.artistTranslit);
-        JTextField txtG  = styledField(AutoStepper.genre);
+        JTextField txtG = styledField(AutoStepper.genre);
 
-        String[] labels = {"Titre Translit", "Sous-titre Translit", "Artiste Translit", "Genre"};
-        JTextField[] fields = {txtTT, txtST, txtAT, txtG};
+        String[] labels = { "Titre Translit", "Sous-titre Translit", "Artiste Translit", "Genre" };
+        JTextField[] fields = { txtTT, txtST, txtAT, txtG };
         for (int i = 0; i < labels.length; i++) {
-            g.gridx = 0; g.gridy = i; g.weightx = 0;
+            g.gridx = 0;
+            g.gridy = i;
+            g.weightx = 0;
             panel.add(styledLabel(labels[i]), g);
-            g.gridx = 1; g.weightx = 1.0;
+            g.gridx = 1;
+            g.weightx = 1.0;
             panel.add(fields[i], g);
         }
 
@@ -1027,7 +1207,9 @@ public class AutoStepperGUI extends JFrame {
 
         btnRow.add(btnCancel);
         btnRow.add(btnSave);
-        g.gridx = 0; g.gridy = labels.length; g.gridwidth = 2;
+        g.gridx = 0;
+        g.gridy = labels.length;
+        g.gridwidth = 2;
         panel.add(btnRow, g);
 
         dialog.setContentPane(panel);
@@ -1035,13 +1217,18 @@ public class AutoStepperGUI extends JFrame {
     }
 
     // ============================================================
-    //  REDIRECTION DES LOGS
+    // REDIRECTION DES LOGS
     // ============================================================
 
     private void redirectSystemStreams() {
         OutputStream out = new OutputStream() {
-            public void write(int b) { updateLog(String.valueOf((char) b)); }
-            public void write(byte[] b, int off, int len) { updateLog(new String(b, off, len)); }
+            public void write(int b) {
+                updateLog(String.valueOf((char) b));
+            }
+
+            public void write(byte[] b, int off, int len) {
+                updateLog(new String(b, off, len));
+            }
         };
         System.setOut(new PrintStream(out, true));
         System.setErr(new PrintStream(out, true));
@@ -1055,7 +1242,8 @@ public class AutoStepperGUI extends JFrame {
     }
 
     private void resetAll() {
-        if (JOptionPane.showConfirmDialog(this, "Voulez-vous vraiment tout réinitialiser ?", "Confirmation", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+        if (JOptionPane.showConfirmDialog(this, "Voulez-vous vraiment tout réinitialiser ?", "Confirmation",
+                JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
             return;
         }
         txtInput.setText(".");
@@ -1063,6 +1251,9 @@ public class AutoStepperGUI extends JFrame {
         txtCustomImage.setText("");
         txtCustomBackground.setText("");
         chkHardMode.setSelected(false);
+        chkSmartMines.setSelected(true);
+        chkDetectSilence.setSelected(true);
+        chkVariableBPM.setSelected(true);
         spinDuration.setValue(0);
         logArea.setText("");
         progressBar.setValue(0);
@@ -1075,8 +1266,71 @@ public class AutoStepperGUI extends JFrame {
         System.out.println("Application réinitialisée.");
     }
 
+    private void showHelpDialog() {
+        JDialog dialog = new JDialog(this, "Aide & Notice d'utilisation", true);
+        dialog.setSize(600, 650);
+        dialog.setLocationRelativeTo(this);
+
+        JEditorPane htmlPane = new JEditorPane("text/html", "");
+        htmlPane.setEditable(false);
+        htmlPane.setBackground(BG_CARD);
+        htmlPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        htmlPane.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+
+        String htmlContent = "<html><body style='color:#E6E6F5; font-family:Segoe UI; padding:15px; margin:0;'>"
+                + "<h2 style='color:#6366F1; border-bottom: 1px solid #373748; padding-bottom: 5px;'>Bienvenue dans AutoStepper v1.8</h2>"
+                + "<p>AutoStepper est un outil qui génère automatiquement des niveaux (steps) StepMania à partir de n'importe quel fichier audio.</p>"
+                + "<h3 style='color:#10B981;'>1. Fonctionnement de base</h3>"
+                + "<ul>"
+                + "<li><b>Fichier ou Dossier</b> : Glissez un MP3/WAV ou tout un dossier dans la zone <i>Musique / Dossier</i>.</li>"
+                + "<li><b>Dossier de Sortie</b> : Choisissez où le pack StepMania sera sauvegardé (par défaut, dans le dossier actuel).</li>"
+                + "<li><b>Bouton Démarrer</b> : Lance la création. Un dossier contenant la musique, le fichier .sm généré, la bannière et l'arrière-plan sera créé.</li>"
+                + "</ul>"
+                + "<h3 style='color:#10B981;'>2. L'Éditeur & Prévisualisation</h3>"
+                + "<ul>"
+                + "<li>Cliquez sur une musique dans la <b>Liste des musiques</b>.</li>"
+                + "<li>Le lecteur audio s'active. Vous pouvez appuyer sur <b>Play</b> pour écouter et visualiser les flèches défiler en rythme !</li>"
+                + "<li>Glissez vos propres images (Bannière ou Arrière-plan) dans les encarts à droite pour personnaliser spécifiquement la chanson sélectionnée.</li>"
+                + "</ul>"
+                + "<h3 style='color:#10B981;'>3. Options Algorithmiques</h3>"
+                + "<ul>"
+                + "<li><b>Mode Difficile</b> : Augmente drastiquement la densité des flèches générées.</li>"
+                + "<li><b>Mines Intelligentes</b> : Ajoute des mines (M) lors des moments très intenses de la musique.</li>"
+                + "<li><b>Couper les Silences</b> : L'IA détecte si la chanson a un long silence au début ou à la fin, et l'ignore automatiquement pour éviter de générer des pas dans le vide.</li>"
+                + "<li><b>BPM Variable</b> : Découpe la musique en segments. Si le tempo change (ex: transition ou accélération), le fichier .sm s'adaptera au lieu de garder un BPM fixe.</li>"
+                + "</ul>"
+                + "<hr style='border:0; border-bottom:1px solid #373748; margin-top:20px;'/>"
+                + "<p style='font-size:11px; color:#9494A8; text-align:center;'>Développé par Maysson.D</p>"
+                + "</body></html>";
+
+        htmlPane.setText(htmlContent);
+        htmlPane.setCaretPosition(0);
+
+        JScrollPane scrollPane = new JScrollPane(htmlPane);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+        JButton btnClose = new JButton("Fermer");
+        btnClose.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnClose.setForeground(Color.WHITE);
+        btnClose.setBackground(ACCENT);
+        btnClose.setFocusPainted(false);
+        btnClose.setBorder(new EmptyBorder(8, 20, 8, 20));
+        btnClose.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnClose.addActionListener(e -> dialog.dispose());
+
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.setBackground(BG_DARK);
+        bottomPanel.add(btnClose);
+
+        dialog.setLayout(new BorderLayout());
+        dialog.add(scrollPane, BorderLayout.CENTER);
+        dialog.add(bottomPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
     // ============================================================
-    //  PROCESSUS PRINCIPAL
+    // PROCESSUS PRINCIPAL
     // ============================================================
 
     private void startProcess() {
@@ -1091,6 +1345,10 @@ public class AutoStepperGUI extends JFrame {
                 }
 
                 AutoStepper.HARDMODE = chkHardMode.isSelected();
+                AutoStepper.SMART_MINES = chkSmartMines.isSelected();
+                AutoStepper.DETECT_SILENCE = chkDetectSilence.isSelected();
+                AutoStepper.VARIABLE_BPM = chkVariableBPM.isSelected();
+
                 float duration = ((Integer) spinDuration.getValue()).floatValue();
                 String outputPath = txtOutput.getText();
                 if (!outputPath.endsWith("/") && !outputPath.endsWith("\\")) {
@@ -1106,11 +1364,13 @@ public class AutoStepperGUI extends JFrame {
                     File f = entry.file;
                     AutoStepper.customImagePath = entry.customBanner.trim().isEmpty() ? null : entry.customBanner;
                     AutoStepper.customBackgroundPath = entry.customBG.trim().isEmpty() ? null : entry.customBG;
-                    
+
                     System.out.println("\n--- Analyse de : " + f.getName() + " ---");
-                    if (AutoStepper.customImagePath != null) System.out.println(" > Bannière forcée : " + new File(AutoStepper.customImagePath).getName());
-                    if (AutoStepper.customBackgroundPath != null) System.out.println(" > Fond forcé : " + new File(AutoStepper.customBackgroundPath).getName());
-                    
+                    if (AutoStepper.customImagePath != null)
+                        System.out.println(" > Bannière forcée : " + new File(AutoStepper.customImagePath).getName());
+                    if (AutoStepper.customBackgroundPath != null)
+                        System.out.println(" > Fond forcé : " + new File(AutoStepper.customBackgroundPath).getName());
+
                     AutoStepper.loadMetadata(f.getAbsolutePath());
                     AutoStepper.myAS.analyzeUsingAudioRecordingStream(f, duration, outputPath);
                 }
@@ -1128,13 +1388,14 @@ public class AutoStepperGUI extends JFrame {
     }
 
     // ============================================================
-    //  LANCEMENT
+    // LANCEMENT
     // ============================================================
 
     public static void launch() {
         try {
             UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         SwingUtilities.invokeLater(() -> {
             AutoStepperGUI gui = new AutoStepperGUI();

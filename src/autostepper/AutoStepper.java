@@ -21,6 +21,7 @@ public class AutoStepper {
     public static float MAX_BPM = 170f, MIN_BPM = 70f, BPM_SENSITIVITY = 0.05f, STARTSYNC = 0.0f;
     public static double TAPSYNC = -0.11;
     public static boolean HARDMODE = false, UPDATESM = false;
+    public static boolean SMART_MINES = true, DETECT_SILENCE = true, VARIABLE_BPM = true;
     public static String customImagePath = null;
     public static String customBackgroundPath = null;
     public static String songTitle = "";
@@ -306,6 +307,12 @@ public class AutoStepper {
         float largestAvg = 0f, largestMax = 0f;
         int lowFreq = fft.freqToIndex(300f);
         int highFreq = fft.freqToIndex(3000f);
+        
+        // --- Détection des Silences ---
+        float firstSoundTime = -1f;
+        float lastSoundTime = 0f;
+        float SILENCE_THRESHOLD = 0.01f;
+        
         for (int chunkIdx = 0; chunkIdx < totalChunks; ++chunkIdx) {
             stream.read(buffer);
             float[] data = buffer.getChannel(0);
@@ -347,6 +354,31 @@ public class AutoStepper {
                 fewTimes[SNARE].add(time);
             if (fewbde.isOnset())
                 fewTimes[ENERGY].add(time);
+            
+            // Détection des zones non-silencieuses
+            float maxAmp = 0f;
+            for (int s = 0; s < data.length; s++) {
+                float absVal = Math.abs(data[s]);
+                if (absVal > maxAmp) maxAmp = absVal;
+            }
+            if (maxAmp > SILENCE_THRESHOLD) {
+                if (firstSoundTime < 0f) firstSoundTime = time;
+                lastSoundTime = time;
+            }
+        }
+        
+        // --- Appliquer la détection des silences ---
+        if (DETECT_SILENCE) {
+            if (firstSoundTime > 0.5f) {
+                System.out.println("\n[\uD83D\uDD07 SILENCE DÉTECTÉ]");
+                System.out.println(" > Silence début : " + String.format("%.2f", firstSoundTime) + "s");
+                // TODO: we could offset the startTime based on firstSoundTime if needed.
+            }
+            if (lastSoundTime > 0f && lastSoundTime < songTime - 1.0f) {
+                float silenceEnd = songTime - lastSoundTime;
+                System.out.println(" > Silence fin : " + String.format("%.2f", silenceEnd) + "s");
+                seconds = Math.min(seconds, lastSoundTime + 0.5f);
+            }
         }
         System.out.println("Moyenne des médiums la plus forte pour normaliser à 1 : " + largestAvg);
         System.out.println("Maximum des médiums le plus fort pour normaliser à 1 : " + largestMax);
@@ -447,8 +479,64 @@ public class AutoStepper {
         System.out.println(" > DIFFICULTÉ ESTIMÉE : " + suggestedRating + "/15");
         System.out.println("----------------------------------------------");
 
+        // --- BPM Variable : détection de changements de tempo ---
+        int NUM_SEGMENTS = 8;
+        float segmentDuration = seconds / NUM_SEGMENTS;
+        TFloatArrayList segmentBPMs = new TFloatArrayList();
+        boolean hasVariableBPM = false;
+        String bpmString = "0.000000=" + BPM;
+        
+        if (VARIABLE_BPM) {
+            for (int seg = 0; seg < NUM_SEGMENTS; seg++) {
+                float segStart = seg * segmentDuration;
+                float segEnd = segStart + segmentDuration;
+                TFloatArrayList segKicks = new TFloatArrayList();
+                for (int i = 0; i < fewTimes[KICKS].size(); i++) {
+                    float t = fewTimes[KICKS].get(i);
+                    if (t >= segStart && t < segEnd) segKicks.add(t);
+                }
+                if (segKicks.size() > 4) {
+                    TFloatArrayList diffs = calculateDifferences(segKicks, doubleSpeed);
+                    if (diffs.size() > 2) {
+                        float localBPM = 60f / getMostCommon(diffs, timePerSample * 1.5f, true);
+                        if (localBPM > MAX_BPM) localBPM *= 0.5f;
+                        if (localBPM < MIN_BPM) localBPM *= 2f;
+                        segmentBPMs.add(Math.round(localBPM));
+                    } else {
+                        segmentBPMs.add(BPM);
+                    }
+                } else {
+                    segmentBPMs.add(BPM);
+                }
+            }
+            
+            // Vérifier s'il y a des variations significatives
+            for (int i = 0; i < segmentBPMs.size(); i++) {
+                float diff = Math.abs(segmentBPMs.get(i) - BPM) / BPM;
+                if (diff > 0.05f) {
+                    hasVariableBPM = true;
+                    break;
+                }
+            }
+        }
+        
+        if (hasVariableBPM) {
+            StringBuilder sb = new StringBuilder();
+            float beatsAccum = 0f;
+            for (int i = 0; i < segmentBPMs.size(); i++) {
+                if (i > 0) sb.append(",");
+                sb.append(String.format("%.6f", beatsAccum)).append("=").append(segmentBPMs.get(i));
+                beatsAccum += segmentDuration / (60f / segmentBPMs.get(i)) * segmentBPMs.get(i) / BPM;
+            }
+            bpmString = sb.toString();
+            System.out.println("\n[\u23F1\uFE0F BPM VARIABLE DÉTECTÉ]");
+            for (int i = 0; i < segmentBPMs.size(); i++) {
+                System.out.println(" > Segment " + (i+1) + " : " + segmentBPMs.get(i) + " BPM");
+            }
+        }
+
         // génération du fichier SM
-        BufferedWriter smfile = SMGenerator.GenerateSM(BPM, startTime, filename, outputDir);
+        BufferedWriter smfile = SMGenerator.GenerateSM(BPM, startTime, filename, outputDir, bpmString);
 
         if (HARDMODE)
             System.out.println("Mode Difficile activé ! Des flèches en plus pour vous ! :-O");

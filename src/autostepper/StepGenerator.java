@@ -86,7 +86,7 @@ public class StepGenerator {
         return getNoteLineIndex(AllNoteLines.size()-1);
     }
     
-    private static void makeNoteLine(String lastLine, float time, int steps, int holds, boolean mines) {
+    private static void makeNoteLine(String lastLine, float time, int steps, int holds, boolean mines, TFloatArrayList FFTMaxes, float timePerFFT) {
         if( steps == 0 ) {
             char[] ret = getHoldStops(getHoldCount(), time, holds);
             AllNoteLines.add(ret);
@@ -152,15 +152,15 @@ public class StepGenerator {
                     stepcount--;
                 }
             }
-            // mettre une mine ?
-            if( mines ) {
-                mineCount--;
-                if( mineCount <= 0 ) {
-                    mineCount = rand.nextInt(8);
-                    if( rand.nextInt(8) == 0 && noteLine[0] == EMPTY && holding[0] <= 0f ) noteLine[0] = MINE;
-                    if( rand.nextInt(8) == 0 && noteLine[1] == EMPTY && holding[1] <= 0f ) noteLine[1] = MINE;
-                    if( rand.nextInt(8) == 0 && noteLine[2] == EMPTY && holding[2] <= 0f ) noteLine[2] = MINE;
-                    if( rand.nextInt(8) == 0 && noteLine[3] == EMPTY && holding[3] <= 0f ) noteLine[3] = MINE;
+            // mettre une mine ? IA basée sur l'énergie audio
+            if( mines && FFTMaxes != null && AutoStepper.SMART_MINES ) {
+                boolean smartMine = shouldPlaceMine(time, FFTMaxes, timePerFFT);
+                if( smartMine ) {
+                    // Placer la mine sur une position vide aléatoire
+                    int minePos = rand.nextInt(4);
+                    if( noteLine[minePos] == EMPTY && holding[minePos] <= 0f ) {
+                        noteLine[minePos] = MINE;
+                    }
                 }
             }
             completeLine = String.valueOf(noteLine);
@@ -265,8 +265,8 @@ public class StepGenerator {
                 }                
             }
             if( AutoStepper.DEBUG_STEPS ) {
-                makeNoteLine(lastLine, t, timeIndex % 2 == 0 ? 1 : 0, -2, allowMines);
-            } else makeNoteLine(lastLine, t, steps, holds, allowMines);
+                makeNoteLine(lastLine, t, timeIndex % 2 == 0 ? 1 : 0, -2, allowMines, FFTMaxes, timePerFFT);
+            } else makeNoteLine(lastLine, t, steps, holds, allowMines, FFTMaxes, timePerFFT);
             totalStepsMade += steps;
             timeIndex++;
         }
@@ -292,6 +292,18 @@ public class StepGenerator {
         int _mineCount = AllNotes.length() - AllNotes.replace("M", "").length();
         System.out.println("Flèches : " + _stepCount + ", Holds : " + _holdCount + ", Mines : " + _mineCount);
         return AllNotes;
+    }
+
+    // --- IA de Placement des Mines basée sur l'énergie ---
+    static boolean shouldPlaceMine(float time, TFloatArrayList FFTMaxes, float timePerFFT) {
+        int idx = Math.round(time / timePerFFT);
+        if (idx < 0 || idx >= FFTMaxes.size()) return false;
+        float energy = FFTMaxes.getQuick(idx);
+        // Plus l'énergie est forte, plus la probabilité de mine est élevée
+        if (energy > 0.8f) return rand.nextInt(3) == 0;   // 33% en zone très intense
+        if (energy > 0.5f) return rand.nextInt(6) == 0;   // 17% en zone intense
+        if (energy > 0.3f) return rand.nextInt(12) == 0;  // 8% en zone moyenne
+        return false;  // Pas de mine en zone calme
     }
     
 }
