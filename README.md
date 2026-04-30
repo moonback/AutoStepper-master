@@ -82,4 +82,4 @@ AutoStepper utilise les bibliothèques suivantes (incluses dans le projet) :
 *   **Trove** : Pour la gestion optimisée des données.
 
 ---
-*Développé à l'origine par Phr00t, amélioré et traduit par Maysson.D.*
+*Développé par Maysson.D.*
