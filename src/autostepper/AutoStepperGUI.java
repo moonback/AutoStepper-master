@@ -12,10 +12,12 @@ import java.awt.geom.RoundRectangle2D;
 import java.awt.dnd.*;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
+import ddf.minim.*;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.prefs.Preferences;
 
 public class AutoStepperGUI extends JFrame {
@@ -43,6 +45,9 @@ public class AutoStepperGUI extends JFrame {
     private JProgressBar progressBar;
     private JTable songTable;
     private SongTableModel songTableModel;
+    private AudioPlayer currentPlayer;
+    private WaveformPanel waveformPanel;
+    private JButton btnPlay;
     private Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 
     // --- Data Model for per-song customization ---
@@ -128,61 +133,35 @@ public class AutoStepperGUI extends JFrame {
         // ====== CENTRE (config + logs) ======
         JPanel center = new JPanel(new BorderLayout(0, 12));
         center.setOpaque(false);
-
+        
+        // --- Zone de configuration scrollable ---
         JPanel configArea = new JPanel();
-        configArea.setOpaque(false);
         configArea.setLayout(new BoxLayout(configArea, BoxLayout.Y_AXIS));
+        configArea.setOpaque(false);
 
         // --- Carte : Fichiers ---
         configArea.add(buildFilesCard());
         configArea.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // --- Carte : Liste des musiques (Nouveau) ---
+        // --- Carte : Liste des musiques ---
         configArea.add(buildSongListCard());
         configArea.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // --- Carte : Visuel ---
+        // --- Carte : Édition & Prévisualisation ---
         configArea.add(buildVisualCard());
         configArea.add(Box.createRigidArea(new Dimension(0, 10)));
 
         // --- Carte : Options ---
         configArea.add(buildOptionsCard());
-        configArea.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        center.add(configArea, BorderLayout.NORTH);
-
-        // --- Zone de logs ---
-        logArea = new JTextArea();
-        logArea.setEditable(false);
-        logArea.setBackground(new Color(12, 12, 18));
-        logArea.setForeground(LOG_GREEN);
-        logArea.setFont(new Font("Consolas", Font.PLAIN, 12));
-        logArea.setMargin(new Insets(12, 12, 12, 12));
-        logArea.setCaretColor(LOG_GREEN);
-
-        JScrollPane scrollPane = new JScrollPane(logArea);
-        scrollPane.setBorder(null);
-        scrollPane.getViewport().setBackground(new Color(12, 12, 18));
-
-        JPanel logWrapper = createCard("Journal d'exécution");
-        logWrapper.setLayout(new BorderLayout());
-        logWrapper.add(scrollPane, BorderLayout.CENTER);
-
-        JButton btnClearLog = new JButton("Nettoyer");
-        btnClearLog.setFont(new Font("Segoe UI", Font.BOLD, 10));
-        btnClearLog.setForeground(TEXT_SECONDARY);
-        btnClearLog.setBackground(BG_CARD);
-        btnClearLog.setBorder(BorderFactory.createEmptyBorder(2, 8, 2, 8));
-        btnClearLog.setFocusPainted(false);
-        btnClearLog.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnClearLog.addActionListener(e -> logArea.setText(""));
-
-        JPanel logHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        logHeader.setOpaque(false);
-        logHeader.add(btnClearLog);
-        logWrapper.add(logHeader, BorderLayout.NORTH);
-
-        center.add(logWrapper, BorderLayout.CENTER);
+        JScrollPane scrollConfig = new JScrollPane(configArea);
+        scrollConfig.setBorder(null);
+        scrollConfig.setOpaque(false);
+        scrollConfig.getViewport().setOpaque(false);
+        scrollConfig.getVerticalScrollBar().setUnitIncrement(16);
+        scrollConfig.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        
+        center.add(scrollConfig, BorderLayout.CENTER);
 
         root.add(center, BorderLayout.CENTER);
 
@@ -193,18 +172,34 @@ public class AutoStepperGUI extends JFrame {
 
         progressBar = new JProgressBar();
         progressBar.setIndeterminate(false);
-        progressBar.setPreferredSize(new Dimension(0, 4));
+        progressBar.setPreferredSize(new Dimension(0, 6));
         progressBar.setBorderPainted(false);
         progressBar.setBackground(BG_CARD);
         progressBar.setForeground(ACCENT_GREEN);
-        bottomPanel.add(progressBar, BorderLayout.NORTH);
-
+        
+        // Journal en bas réduit pour laisser place au scroll
+        logArea = new JTextArea();
+        logArea.setEditable(false);
+        logArea.setBackground(new Color(12, 12, 18));
+        logArea.setForeground(LOG_GREEN);
+        logArea.setFont(new Font("Consolas", Font.PLAIN, 11));
+        logArea.setMargin(new java.awt.Insets(8, 8, 8, 8));
+        
+        JScrollPane scrollLog = new JScrollPane(logArea);
+        scrollLog.setBorder(null);
+        scrollLog.setPreferredSize(new Dimension(0, 120));
+        
+        JPanel bottomArea = new JPanel(new BorderLayout(0, 5));
+        bottomArea.setOpaque(false);
+        bottomArea.add(progressBar, BorderLayout.NORTH);
+        bottomArea.add(scrollLog, BorderLayout.CENTER);
+        
         btnStart = createGradientButton("DÉMARRER LA GÉNÉRATION DES STEPS", ACCENT_GREEN, ACCENT_GREEN_H);
         btnStart.setPreferredSize(new Dimension(0, 56));
         btnStart.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btnStart.setToolTipText("Lance l'analyse et la création des fichiers .sm");
         
         JButton btnReset = new JButton("Réinitialiser Tout");
+        // ... (styles already set or will be merged)
         btnReset.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnReset.setForeground(TEXT_SECONDARY);
         btnReset.setBackground(BG_CARD);
@@ -219,9 +214,8 @@ public class AutoStepperGUI extends JFrame {
         actionPanel.add(btnReset, BorderLayout.WEST);
         actionPanel.add(btnStart, BorderLayout.CENTER);
         
-        bottomPanel.add(actionPanel, BorderLayout.CENTER);
-
-        root.add(bottomPanel, BorderLayout.SOUTH);
+        bottomArea.add(actionPanel, BorderLayout.SOUTH);
+        root.add(bottomArea, BorderLayout.SOUTH);
 
         // ====== ÉVÉNEMENTS ======
         wireEvents();
@@ -351,12 +345,18 @@ public class AutoStepperGUI extends JFrame {
             txtCustomBackground.setText(entry.customBG);
             updateDropZonePreview(entry.customBanner, lblBannerPreview, "Bannière Spécifique");
             updateDropZonePreview(entry.customBG, lblBgPreview, "Fond Spécifique");
+            
+            // Mettre à jour le lecteur audio
+            waveformPanel.setSong(entry.file);
         }
     }
 
     private JPanel buildVisualCard() {
-        JPanel card = createCard("\uD83D\uDDBC\uFE0F Personnalisation Visuelle — Glisser-Déposer");
-        card.setLayout(new GridLayout(1, 2, 14, 0));
+        JPanel card = createCard("\uD83C\uDFA7 Édition & Prévisualisation");
+        card.setLayout(new BorderLayout(0, 10));
+
+        JPanel dropZones = new JPanel(new GridLayout(1, 2, 14, 0));
+        dropZones.setOpaque(false);
 
         txtCustomImage = styledField("");
         txtCustomBackground = styledField("");
@@ -366,9 +366,216 @@ public class AutoStepperGUI extends JFrame {
         JPanel dropBanner = createDropZone("\uD83D\uDDBC\uFE0F Bannière", "Glissez une image ici", txtCustomImage, lblBannerPreview);
         JPanel dropBg = createDropZone("\uD83C\uDFA8 Fond / Vidéo", "Glissez une image ou vidéo ici", txtCustomBackground, lblBgPreview);
 
-        card.add(dropBanner);
-        card.add(dropBg);
+        dropZones.add(dropBanner);
+        dropZones.add(dropBg);
+        card.add(dropZones, BorderLayout.NORTH);
+
+        // Audio Preview Panel
+        JPanel audioPanel = new JPanel(new BorderLayout(10, 0));
+        audioPanel.setOpaque(false);
+        audioPanel.setPreferredSize(new Dimension(0, 100));
+
+        waveformPanel = new WaveformPanel();
+        audioPanel.add(waveformPanel, BorderLayout.CENTER);
+
+        btnPlay = new JButton("\u25B6") {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(currentPlayer != null && currentPlayer.isPlaying() ? ACCENT_GREEN : ACCENT);
+                g2.fillOval(4, 4, getWidth()-8, getHeight()-8);
+                g2.setColor(Color.WHITE);
+                if (currentPlayer != null && currentPlayer.isPlaying()) {
+                    g2.fillRect(getHeight()/2 - 6, getHeight()/2 - 8, 4, 16);
+                    g2.fillRect(getHeight()/2 + 2, getHeight()/2 - 8, 4, 16);
+                } else {
+                    int[] px = {getHeight()/2 - 4, getHeight()/2 - 4, getHeight()/2 + 8};
+                    int[] py = {getHeight()/2 - 8, getHeight()/2 + 8, getHeight()/2};
+                    g2.fillPolygon(px, py, 3);
+                }
+                g2.dispose();
+            }
+        };
+        btnPlay.setPreferredSize(new Dimension(60, 60));
+        btnPlay.setFocusPainted(false);
+        btnPlay.setBorderPainted(false);
+        btnPlay.setContentAreaFilled(false);
+        btnPlay.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnPlay.addActionListener(e -> togglePlay());
+        
+        audioPanel.add(btnPlay, BorderLayout.WEST);
+        card.add(audioPanel, BorderLayout.CENTER);
+
         return card;
+    }
+
+    private class WaveformPanel extends JPanel {
+        private float[] energyHistory;  // RMS energy accumulated over time
+        private int energyWriteIndex = 0;
+        private Timer animTimer;
+
+        public WaveformPanel() {
+            setOpaque(false);
+            setPreferredSize(new Dimension(0, 80));
+            animTimer = new Timer(33, e -> {
+                captureEnergy();
+                repaint();
+            });
+        }
+
+        private void captureEnergy() {
+            if (currentPlayer == null || !currentPlayer.isPlaying()) return;
+            if (energyHistory == null || currentPlayer.length() <= 0) return;
+            
+            // Map current position to a slot in the history array
+            float progress = (float) currentPlayer.position() / currentPlayer.length();
+            int slot = (int) (progress * energyHistory.length);
+            if (slot < 0) slot = 0;
+            if (slot >= energyHistory.length) slot = energyHistory.length - 1;
+            
+            // Calculate RMS from the live mix buffer
+            float rms = currentPlayer.mix.level();
+            energyHistory[slot] = Math.max(energyHistory[slot], rms);
+        }
+
+        public void setSong(File file) {
+            if (file == null || !file.exists()) return;
+            
+            if (currentPlayer != null) {
+                currentPlayer.close();
+                currentPlayer = null;
+            }
+            
+            // Reset waveform history
+            energyHistory = new float[600];
+            
+            System.out.println("Lecture de l'aperçu : " + file.getName());
+            
+            new Thread(() -> {
+                try {
+                    if (AutoStepper.minim == null) {
+                        AutoStepper.minim = new Minim(AutoStepper.myAS);
+                    }
+                    currentPlayer = AutoStepper.minim.loadFile(file.getAbsolutePath(), 1024);
+                    System.out.println("Audio chargé (" + (currentPlayer.length() / 1000) + "s).");
+                    
+                    SwingUtilities.invokeLater(() -> {
+                        animTimer.start();
+                        repaint();
+                    });
+                } catch (Exception e) {
+                    System.err.println("Erreur lors du chargement : " + e.getMessage());
+                }
+            }).start();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            int w = getWidth();
+            int h = getHeight();
+            int mid = h / 2;
+            
+            // Background rounded
+            g2.setColor(BG_INPUT);
+            g2.fillRoundRect(0, 0, w, h, 12, 12);
+            
+            if (currentPlayer != null) {
+                // --- Draw accumulated energy history as waveform bars ---
+                if (energyHistory != null) {
+                    float step = (float) energyHistory.length / w;
+                    for (int x = 0; x < w; x++) {
+                        int idx = (int) (x * step);
+                        if (idx >= energyHistory.length) idx = energyHistory.length - 1;
+                        float val = energyHistory[idx];
+                        if (val > 0) {
+                            int amp = (int) (val * mid * 2.5f);
+                            if (amp > mid - 2) amp = mid - 2;
+                            g2.setColor(ACCENT.darker());
+                            g2.drawLine(x, mid - amp, x, mid + amp);
+                        }
+                    }
+                }
+                
+                // --- Draw live oscilloscope from current buffer ---
+                if (currentPlayer.isPlaying()) {
+                    float[] mixBuf = currentPlayer.mix.toArray();
+                    g2.setColor(ACCENT);
+                    g2.setStroke(new BasicStroke(1.5f));
+                    int bufLen = mixBuf.length;
+                    int prevY = mid;
+                    for (int x = 0; x < w; x++) {
+                        int bufIdx = (int) ((float) x / w * bufLen);
+                        if (bufIdx >= bufLen) bufIdx = bufLen - 1;
+                        int y = mid - (int) (mixBuf[bufIdx] * mid * 0.9f);
+                        if (x > 0) g2.drawLine(x - 1, prevY, x, y);
+                        prevY = y;
+                    }
+                    g2.setStroke(new BasicStroke(1f));
+                }
+                
+                // --- Playhead ---
+                float progress = (float) currentPlayer.position() / Math.max(1, currentPlayer.length());
+                int px = (int) (progress * w);
+                g2.setColor(ACCENT_GREEN);
+                g2.setStroke(new BasicStroke(2f));
+                g2.drawLine(px, 2, px, h - 2);
+                g2.setStroke(new BasicStroke(1f));
+                
+                // --- Time label ---
+                int posSec = currentPlayer.position() / 1000;
+                int lenSec = currentPlayer.length() / 1000;
+                String timeStr = String.format("%d:%02d / %d:%02d", posSec/60, posSec%60, lenSec/60, lenSec%60);
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 10));
+                g2.setColor(TEXT_SECONDARY);
+                g2.drawString(timeStr, w - 90, h - 6);
+                
+                // --- Step arrows preview ---
+                if (currentPlayer.isPlaying()) {
+                    drawStepPreview(g2, px, mid);
+                }
+            } else {
+                g2.setColor(TEXT_SECONDARY);
+                g2.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+                g2.drawString("Sélectionnez une musique puis appuyez sur ▶", 20, mid + 5);
+            }
+            
+            // Center line
+            g2.setColor(new Color(255, 255, 255, 30));
+            g2.drawLine(0, mid, w, mid);
+            
+            g2.dispose();
+        }
+
+        private void drawStepPreview(Graphics2D g2, int px, int mid) {
+            g2.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            String[] arrows = {"←", "↓", "↑", "→"};
+            Color[] colors = {ACCENT, ACCENT_GREEN, new Color(239, 68, 68), ACCENT_HOVER};
+            long tick = System.currentTimeMillis() / 120;
+            for (int i = 0; i < 4; i++) {
+                if ((tick + i) % 4 == 0) {
+                    g2.setColor(colors[i]);
+                    g2.drawString(arrows[i], px + 8 + (i * 18), mid + 5);
+                }
+            }
+        }
+    }
+
+    private void togglePlay() {
+        if (currentPlayer == null) {
+            System.out.println("Aucun fichier audio chargé.");
+            return;
+        }
+        if (currentPlayer.isPlaying()) {
+            currentPlayer.pause();
+            System.out.println("Pause.");
+        } else {
+            currentPlayer.play();
+            System.out.println("Lecture en cours...");
+        }
+        btnPlay.repaint();
     }
 
     private class DropZonePanel extends JPanel {
