@@ -203,7 +203,23 @@ public class AutoStepperGUI extends JFrame {
         btnStart.setPreferredSize(new Dimension(0, 56));
         btnStart.setFont(new Font("Segoe UI", Font.BOLD, 16));
         btnStart.setToolTipText("Lance l'analyse et la création des fichiers .sm");
-        bottomPanel.add(btnStart, BorderLayout.CENTER);
+        
+        JButton btnReset = new JButton("Réinitialiser Tout");
+        btnReset.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnReset.setForeground(TEXT_SECONDARY);
+        btnReset.setBackground(BG_CARD);
+        btnReset.setFocusPainted(false);
+        btnReset.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
+        btnReset.setPreferredSize(new Dimension(140, 56));
+        btnReset.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnReset.addActionListener(e -> resetAll());
+        
+        JPanel actionPanel = new JPanel(new BorderLayout(10, 0));
+        actionPanel.setOpaque(false);
+        actionPanel.add(btnReset, BorderLayout.WEST);
+        actionPanel.add(btnStart, BorderLayout.CENTER);
+        
+        bottomPanel.add(actionPanel, BorderLayout.CENTER);
 
         root.add(bottomPanel, BorderLayout.SOUTH);
 
@@ -829,6 +845,27 @@ public class AutoStepperGUI extends JFrame {
             logArea.append(text);
             logArea.setCaretPosition(logArea.getDocument().getLength());
         });
+    }
+
+    private void resetAll() {
+        if (JOptionPane.showConfirmDialog(this, "Voulez-vous vraiment tout réinitialiser ?", "Confirmation", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+            return;
+        }
+        txtInput.setText(".");
+        txtOutput.setText(".");
+        txtCustomImage.setText("");
+        txtCustomBackground.setText("");
+        chkHardMode.setSelected(false);
+        spinDuration.setValue(0);
+        logArea.setText("");
+        progressBar.setValue(0);
+        if (songTableModel != null) {
+            songTableModel.setEntries(new java.util.ArrayList<>());
+        }
+        updateDropZonePreview("", lblBannerPreview, "Glissez une image ici");
+        updateDropZonePreview("", lblBgPreview, "Glissez une image ou vidéo ici");
+        validateInputs();
+        System.out.println("Application réinitialisée.");
     }
 
     // ============================================================
