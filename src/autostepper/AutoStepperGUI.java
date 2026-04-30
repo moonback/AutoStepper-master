@@ -12,6 +12,7 @@ public class AutoStepperGUI extends JFrame {
     private JTextField txtInput;
     private JTextField txtOutput;
     private JTextField txtCustomImage;
+    private JTextField txtCustomBackground;
     private JSpinner spinDuration;
     private JCheckBox chkHardMode;
     private JCheckBox chkUseTapper;
@@ -21,7 +22,7 @@ public class AutoStepperGUI extends JFrame {
     public AutoStepperGUI() {
         setTitle("AutoStepper v1.7 - Interface Graphique");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(700, 600);
+        setSize(700, 650);
         setLocationRelativeTo(null);
 
         // Panel principal avec marges
@@ -59,12 +60,12 @@ public class AutoStepperGUI extends JFrame {
         gbc.gridx = 2; gbc.weightx = 0;
         configPanel.add(btnBrowseOutput, gbc);
 
-        // --- Ligne 3 : Image personnalisée ---
+        // --- Ligne 3 : Image personnalisée (Bannière) ---
         gbc.gridx = 0; gbc.gridy = 2;
         configPanel.add(new JLabel("Image (Bannière) :"), gbc);
 
         txtCustomImage = new JTextField("");
-        txtCustomImage.setToolTipText("Laissez vide pour la recherche automatique");
+        txtCustomImage.setToolTipText("Image étroite affichée dans le menu");
         gbc.gridx = 1; gbc.weightx = 1.0;
         configPanel.add(txtCustomImage, gbc);
 
@@ -72,7 +73,20 @@ public class AutoStepperGUI extends JFrame {
         gbc.gridx = 2; gbc.weightx = 0;
         configPanel.add(btnBrowseImage, gbc);
 
-        // --- Ligne 4 : Options ---
+        // --- Ligne 4 : Arrière-plan personnalisé ---
+        gbc.gridx = 0; gbc.gridy = 3;
+        configPanel.add(new JLabel("Image (Fond) :"), gbc);
+
+        txtCustomBackground = new JTextField("");
+        txtCustomBackground.setToolTipText("Image affichée pendant le jeu");
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        configPanel.add(txtCustomBackground, gbc);
+
+        JButton btnBrowseBackground = new JButton("Parcourir...");
+        gbc.gridx = 2; gbc.weightx = 0;
+        configPanel.add(btnBrowseBackground, gbc);
+
+        // --- Ligne 5 : Options ---
         JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         chkHardMode = new JCheckBox("Mode Difficile  ");
         chkUseTapper = new JCheckBox("Utiliser Tap Manuel  ");
@@ -82,7 +96,7 @@ public class AutoStepperGUI extends JFrame {
         spinDuration = new JSpinner(new SpinnerNumberModel(90, 10, 600, 10));
         optionsPanel.add(spinDuration);
 
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 3;
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 3;
         configPanel.add(optionsPanel, gbc);
 
         mainPanel.add(configPanel, BorderLayout.NORTH);
@@ -126,6 +140,14 @@ public class AutoStepperGUI extends JFrame {
             chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
             if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                 txtCustomImage.setText(chooser.getSelectedFile().getAbsolutePath());
+            }
+        });
+
+        btnBrowseBackground.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser(txtCustomBackground.getText());
+            chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                txtCustomBackground.setText(chooser.getSelectedFile().getAbsolutePath());
             }
         });
 
@@ -174,6 +196,7 @@ public class AutoStepperGUI extends JFrame {
                 AutoStepper.HARDMODE = chkHardMode.isSelected();
                 AutoStepper.USETAPPER = chkUseTapper.isSelected();
                 AutoStepper.customImagePath = txtCustomImage.getText().trim().isEmpty() ? null : txtCustomImage.getText();
+                AutoStepper.customBackgroundPath = txtCustomBackground.getText().trim().isEmpty() ? null : txtCustomBackground.getText();
                 float duration = ((Integer) spinDuration.getValue()).floatValue();
                 String inputPath = txtInput.getText();
                 String outputPath = txtOutput.getText();

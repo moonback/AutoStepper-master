@@ -23,8 +23,8 @@ public class SMGenerator {
             "#ARTISTTRANSLIT:;\n" +
             "#GENRE:;\n" +
             "#CREDIT:AutoStepper par Maysson.D;\n" +
-            "#BANNER:$BGIMAGE;\n" +
-            "#BACKGROUND:$BGIMAGE;\n" +
+            "#BANNER:$BANNERIMAGE;\n" +
+            "#BACKGROUND:$BACKIMAGE;\n" +
             "#LYRICSPATH:;\n" +
             "#CDTITLE:;\n" +
             "#MUSIC:$MUSICFILE;\n" +
@@ -107,34 +107,60 @@ public class SMGenerator {
         File dir = new File(outputdir, filename + "_dir/");
         dir.mkdirs();
         File smfile = new File(dir, filename + ".sm");
-        // obtenir une image pour le sm
-        File imgFile = new File(dir, filename + "_img.png");
-        String imgFileName = "";
+        // Gestion de la bannière
+        File bannerFile = new File(dir, filename + "_banner.png");
+        String bannerFileName = "";
         if (AutoStepper.customImagePath != null && new File(AutoStepper.customImagePath).exists()) {
-            System.out.println("Utilisation de l'image personnalisée : " + AutoStepper.customImagePath);
+            System.out.println("Utilisation de la bannière personnalisée : " + AutoStepper.customImagePath);
             try {
-                copyFileUsingStream(new File(AutoStepper.customImagePath), imgFile);
+                copyFileUsingStream(new File(AutoStepper.customImagePath), bannerFile);
+                bannerFileName = bannerFile.getName();
             } catch (IOException e) {
-                System.out.println("Erreur lors de la copie de l'image : " + e.getMessage());
+                System.out.println("Erreur lors de la copie de la bannière : " + e.getMessage());
             }
-        } else if (imgFile.exists() == false) {
-            System.out.println("Tentative de récupération d'une image pour le fond et la bannière...");
-            GoogleImageSearch.FindAndSaveImage(
-                    songname.replace("(", " ").replace(")", " ").replace("www.", " ").replace("_", " ")
-                            .replace("-", " ").replace("&", " ").replace("[", " ").replace("]", " "),
-                    imgFile.getAbsolutePath());
         }
-        if (imgFile.exists()) {
-            System.out.println("Image récupérée !");
-            imgFileName = imgFile.getName();
-        } else
-            System.out.println("Aucune image à utiliser :(");
+
+        // Gestion de l'arrière-plan
+        File bgFile = new File(dir, filename + "_bg.png");
+        String bgFileName = "";
+        if (AutoStepper.customBackgroundPath != null && new File(AutoStepper.customBackgroundPath).exists()) {
+            System.out.println("Utilisation de l'arrière-plan personnalisé : " + AutoStepper.customBackgroundPath);
+            try {
+                copyFileUsingStream(new File(AutoStepper.customBackgroundPath), bgFile);
+                bgFileName = bgFile.getName();
+            } catch (IOException e) {
+                System.out.println("Erreur lors de la copie de l'arrière-plan : " + e.getMessage());
+            }
+        }
+
+        // Compléter avec la recherche Google si nécessaire
+        if (bannerFileName.isEmpty() || bgFileName.isEmpty()) {
+            File searchImgFile = new File(dir, filename + "_img.png");
+            if (searchImgFile.exists() == false) {
+                System.out.println("Tentative de récupération d'une image internet pour compléter...");
+                GoogleImageSearch.FindAndSaveImage(
+                        songname.replace("(", " ").replace(")", " ").replace("www.", " ").replace("_", " ")
+                                .replace("-", " ").replace("&", " ").replace("[", " ").replace("]", " "),
+                        searchImgFile.getAbsolutePath());
+            }
+            if (searchImgFile.exists()) {
+                System.out.println("Image internet récupérée !");
+                if (bannerFileName.isEmpty()) bannerFileName = searchImgFile.getName();
+                if (bgFileName.isEmpty()) bgFileName = searchImgFile.getName();
+            } else {
+                System.out.println("Aucune image internet trouvée :(");
+            }
+        }
+
         try {
             smfile.delete();
             copyFileUsingStream(songfile, new File(dir, filename));
             BufferedWriter writer = new BufferedWriter(new FileWriter(smfile));
             writer.write(
-                    Header.replace("$TITLE", shortName).replace("$BGIMAGE", imgFileName).replace("$MUSICFILE", filename)
+                    Header.replace("$TITLE", shortName)
+                            .replace("$BANNERIMAGE", bannerFileName)
+                            .replace("$BACKIMAGE", bgFileName)
+                            .replace("$MUSICFILE", filename)
                             .replace("$STARTTIME", Float.toString(startTime + AutoStepper.STARTSYNC))
                             .replace("$BPM", Float.toString(BPM)));
             return writer;
